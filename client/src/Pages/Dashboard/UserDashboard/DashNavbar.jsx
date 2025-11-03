@@ -43,7 +43,9 @@ const DashNavbar = () => {
           >
             <div className="card-body">
               <span className="text-lg font-bold text-gray-800">8 Items</span>
-              <span className="text-[#047857] font-semibold">Subtotal: $999</span>
+              <span className="text-[#047857] font-semibold">
+                Subtotal: $999
+              </span>
               <div className="card-actions">
                 <button className="btn bg-[#047857] hover:bg-emerald-800 text-white btn-block">
                   View Cart
@@ -73,7 +75,10 @@ const DashNavbar = () => {
             className="menu menu-sm dropdown-content mt-3 w-52 p-2 shadow bg-white rounded-box z-[1]"
           >
             <li>
-              <Link to="/profile" className="justify-between hover:bg-[#ecfccb] rounded">
+              <Link
+                to="/profile"
+                className="justify-between hover:bg-[#ecfccb] rounded"
+              >
                 Profile
                 <span className="badge bg-[#047857] text-white">New</span>
               </Link>

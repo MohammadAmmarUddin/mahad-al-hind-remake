@@ -17,35 +17,29 @@ const Navbar = () => {
 
   const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
 
-  const fetchUser = () => {
-    const url = `${baseUrl}/api/user/singleUser/${user?.user?._id}`;
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => setUserData(data))
-      .catch((error) => console.log(error));
-  };
-
   useEffect(() => {
-    fetchUser();
+    if (user?.user?._id) {
+      fetch(`${baseUrl}/api/user/singleUser/${user?.user?._id}`)
+        .then((res) => res.json())
+        .then((data) => setUserData(data))
+        .catch((error) => console.log(error));
+    }
   }, [user?.user?._id]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const navLinkClasses =
     "relative px-4 py-2 transition-all duration-300 ease-in-out rounded-md text-emerald-700 font-medium";
 
   const navLinkHoverEffect = {
     whileHover: {
-      backgroundColor: "rgba(5, 150, 105, 0.8)", // Tailwind's emerald-600
+      backgroundColor: "rgba(5, 150, 105, 0.8)",
       color: "#ffffff",
       scale: 1.05,
-      radius: "0.375rem", // Tailwind's rounded-md
+      radius: "0.375rem",
     },
     transition: { duration: 0.3 },
   };
-
 
   return (
     <motion.div
@@ -58,7 +52,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="w-20">
-            <img src={logo} alt="Logo" className="w-full object-contain" />
+            <Link to={"/"}>
+              <img src={logo} alt="Logo" className="w-full object-contain" />
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
@@ -70,13 +66,13 @@ const Navbar = () => {
                   user?.user?.role === "admin"
                     ? "/dashboard/admin/adminHome"
                     : user?.user?.role === "user"
-                      ? "/dashboard/user/userHome"
-                      : null,
+                    ? "/dashboard/user/userHome"
+                    : null,
                 label: "Dashboard",
               },
               { to: "/allCourses", label: "Courses" },
-
               { to: "/certificate-checker", label: "Certificate Checker" },
+              { to: "/Admission-help", label: "Admission Help" },
             ]
               .filter((link) => link.to)
               .map((link, idx) => (
@@ -91,21 +87,29 @@ const Navbar = () => {
           {/* Profile / Auth */}
           <div className="flex items-center gap-3">
             {/* Mobile Toggle */}
-            <button onClick={toggleMenu} className="lg:hidden text-2xl text-emerald-700">
+            <button
+              onClick={toggleMenu}
+              className="lg:hidden text-2xl text-emerald-700"
+            >
               <HiMenu />
             </button>
 
+            {/* Desktop Auth Buttons */}
             {user ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center bg-emerald-600 rounded-full px-3 py-1"
+                className="hidden lg:flex items-center bg-emerald-600 rounded-full px-3 py-1"
               >
                 <p className="text-white font-medium hidden sm:block">
                   {userData?.firstname} {userData?.lastname}
                 </p>
                 <div className="dropdown dropdown-end ml-3">
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+                  <div
+                    tabIndex={0}
+                    role="button"
+                    className="btn btn-ghost btn-circle avatar"
+                  >
                     <div className="w-9 rounded-full border-2 border-white">
                       <img
                         src={userData?.img}
@@ -137,7 +141,7 @@ const Navbar = () => {
                 </div>
               </motion.div>
             ) : (
-              <div className="flex items-center gap-3 font-semibold">
+              <div className="hidden lg:flex items-center gap-3 font-semibold">
                 <Link to="/login" className="text-emerald-700 hover:underline">
                   Login
                 </Link>
@@ -161,7 +165,9 @@ const Navbar = () => {
               exit={{ opacity: 0, y: -10 }}
               className="lg:hidden mt-3 flex flex-col gap-3 p-4 bg-white border rounded-md shadow-md text-emerald-700 font-medium"
             >
-              <Link to="/" onClick={toggleMenu}>Home</Link>
+              <Link to="/" onClick={toggleMenu}>
+                Home
+              </Link>
               {user?.user?.role === "admin" && (
                 <Link to="/dashboard/admin/adminHome" onClick={toggleMenu}>
                   Dashboard
@@ -172,9 +178,35 @@ const Navbar = () => {
                   Dashboard
                 </Link>
               )}
-              <Link to="/allCourses" onClick={toggleMenu}>Courses</Link>
+              <Link to="/allCourses" onClick={toggleMenu}>
+                Courses
+              </Link>
+              <Link to="/certificate-checker" onClick={toggleMenu}>
+                Certificate Checker
+              </Link>
+              <Link to="/Admission-help" onClick={toggleMenu}>
+                Admission Help
+              </Link>
 
-              <Link to="/certificate-checker" onClick={toggleMenu}>Certificate Checker</Link>
+              {/* Mobile Auth Buttons */}
+              {!user && (
+                <div className="flex flex-col gap-2 mt-2">
+                  <Link
+                    to="/login"
+                    onClick={toggleMenu}
+                    className="text-emerald-700 hover:underline"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={toggleMenu}
+                    className="bg-emerald-600 text-white px-3 py-1 rounded-md hover:bg-emerald-700 transition text-center"
+                  >
+                    Signup
+                  </Link>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

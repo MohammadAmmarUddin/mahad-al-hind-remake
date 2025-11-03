@@ -6,10 +6,12 @@ const helmet = require("helmet");
 // Use helmet middleware for secure headers
 
 const userRoutes = require("./Routes/userRoutes.js");
+const orderRoutes = require("./Routes/order.js");
 const meetRoutes = require("./Routes/meetRoutes.js");
 const courseRoutes = require("./Routes/courseRoutes.js");
 const certificateRoutes = require("./Routes/certificateAuth");
 const whatsappRoutes = require("./Routes/whatsappRoutes.js");
+const reviewRoutes = require("./Routes/reviewRoutes");
 require("dotenv").config();
 const app = express();
 const baseUrl = process.env.BASE_URL;
@@ -32,6 +34,7 @@ app.use("/api/course", courseRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/meet", meetRoutes);
 app.use("/api/certificate", certificateRoutes);
+app.use("/api/review", reviewRoutes);
 
 // Test route
 app.get("/", async (req, res) => {
@@ -46,6 +49,9 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+app.use("/api/orders", orderRoutes );
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose

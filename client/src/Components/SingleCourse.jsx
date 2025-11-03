@@ -363,7 +363,10 @@ const SingleCourse = () => {
 
   const quizCompleteAction = async (newScore) => {
     const quizMarksPercentage = (newScore * 100) / quizzes.length;
-    console.log("🚀 ~ quizCompleteAction ~ quizMarksPercentage:", quizMarksPercentage)
+    console.log(
+      "🚀 ~ quizCompleteAction ~ quizMarksPercentage:",
+      quizMarksPercentage
+    );
     console.log(score);
     try {
       if (quizMarksPercentage < 40) {
@@ -374,8 +377,7 @@ const SingleCourse = () => {
           confirmButtonText: "OK",
         });
         return;
-      }
-      else {
+      } else {
         const response = await fetch(
           `${baseUrl}/api/course/completeQuiz/${userId}`,
           {
@@ -383,7 +385,11 @@ const SingleCourse = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ _id: courseData._id, quizMarks: newScore, quizMarksPercentage: quizMarksPercentage }),
+            body: JSON.stringify({
+              _id: courseData._id,
+              quizMarks: newScore,
+              quizMarksPercentage: quizMarksPercentage,
+            }),
           }
         );
 
@@ -440,14 +446,15 @@ const SingleCourse = () => {
                 />
                 <label
                   htmlFor={`quiz-${quizIndex}-option-${optionIndex}`}
-                  className={`${quizSubmitted
-                    ? optionIndex.toString() === quiz.ans.toString()
-                      ? "text-green-600 font-bold"
-                      : quiz.selectedAnswer === optionIndex.toString()
+                  className={`${
+                    quizSubmitted
+                      ? optionIndex.toString() === quiz.ans.toString()
+                        ? "text-green-600 font-bold"
+                        : quiz.selectedAnswer === optionIndex.toString()
                         ? "text-red-600 font-bold"
                         : "text-gray-700"
-                    : "text-gray-700"
-                    }`}
+                      : "text-gray-700"
+                  }`}
                 >
                   {option}
                 </label>
@@ -531,7 +538,7 @@ const SingleCourse = () => {
     });
   };
 
-  useEffect(() => { }, [finalPrice]);
+  useEffect(() => {}, [finalPrice]);
 
   // console.log('final price',finalPrice, Math.round(finalPrice));
 
@@ -741,7 +748,6 @@ const SingleCourse = () => {
           <Navbar />
           <div className="pt-[73px] pb-20">
             <div className="rounded-md bg-gradient-to-r from-[#065f46] via-[#047857] to-[#ecfccb] text-white px-5 py-10 border-b mb-8 shadow-lg backdrop-blur-sm">
-
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-3xl">{courseData?.title}</h3>
@@ -755,13 +761,13 @@ const SingleCourse = () => {
                 <div className="flex flex-col md:flex-row gap-2">
                   {(user?.user?.role === "admin" ||
                     courseData?.instructorsId?.includes(userId)) && (
-                      <Link
-                        to={`/dashboard/admin/schedulemeet?${courseId}`}
-                        className="text-primary flex items-center gap-2 bg-white py-2 px-4 rounded-md"
-                      >
-                        Create Meet
-                      </Link>
-                    )}
+                    <Link
+                      to={`/dashboard/admin/schedulemeet?${courseId}`}
+                      className="text-primary flex items-center gap-2 bg-white py-2 px-4 rounded-md"
+                    >
+                      Create Meet
+                    </Link>
+                  )}
                   <button
                     onClick={() => downloadFiteAtURL(courseData?.syllabus)}
                     className="text-primary flex items-center gap-2 bg-white py-2 px-4 rounded-md"
@@ -882,13 +888,13 @@ const SingleCourse = () => {
                 <div className="flex flex-col md:flex-row gap-2">
                   {(user?.user?.role === "admin" ||
                     courseData?.instructorsId?.includes(userId)) && (
-                      <Link
-                        to={`/dashboard/admin/schedulemeet?${courseId}`}
-                        className="text-primary flex items-center gap-2 bg-white py-2 px-4 rounded-md"
-                      >
-                        Create Meet
-                      </Link>
-                    )}
+                    <Link
+                      to={`/dashboard/admin/schedulemeet?${courseId}`}
+                      className="text-primary flex items-center gap-2 bg-white py-2 px-4 rounded-md"
+                    >
+                      Create Meet
+                    </Link>
+                  )}
                   <button
                     onClick={() => downloadFiteAtURL(courseData?.syllabus)}
                     className="text-primary flex items-center gap-2 bg-white py-2 px-4 rounded-md"
@@ -926,14 +932,15 @@ const SingleCourse = () => {
                     {courseData?.videos?.map((video, index) => (
                       <p
                         key={video?._id}
-                        className={`whitespace-nowrap m-3 p-2 rounded-md border ${showQuiz
-                          ? "text-gray-400 cursor-not-allowed"
-                          : selectedVideo?._id === video._id
+                        className={`whitespace-nowrap m-3 p-2 rounded-md border ${
+                          showQuiz
+                            ? "text-gray-400 cursor-not-allowed"
+                            : selectedVideo?._id === video._id
                             ? "bg-primary border-primary text-white"
                             : index < unlockedVideos
-                              ? "text-black cursor-pointer"
-                              : "text-gray-400 cursor-not-allowed"
-                          } overflow-hidden`}
+                            ? "text-black cursor-pointer"
+                            : "text-gray-400 cursor-not-allowed"
+                        } overflow-hidden`}
                         onClick={() =>
                           !showQuiz &&
                           index < unlockedVideos &&
@@ -951,19 +958,21 @@ const SingleCourse = () => {
                     {courseData?.videos?.length > 0 && (
                       <div className="whitespace-nowrap flex justify-between m-3 p-2 rounded-md border">
                         <p
-                          className={`px-4 rounded-md ${courseComplete
-                            ? "text-black"
-                            : "text-gray-400 cursor-not-allowed"
-                            }`}
+                          className={`px-4 rounded-md ${
+                            courseComplete
+                              ? "text-black"
+                              : "text-gray-400 cursor-not-allowed"
+                          }`}
                         >
                           Quiz
                         </p>
                         <button
                           onClick={courseComplete ? handleQuizOpen : undefined}
-                          className={`px-4 rounded-md ${courseComplete
-                            ? "bg-primary text-white"
-                            : "bg-gray-300 text-gray-400 cursor-not-allowed"
-                            }`}
+                          className={`px-4 rounded-md ${
+                            courseComplete
+                              ? "bg-primary text-white"
+                              : "bg-gray-300 text-gray-400 cursor-not-allowed"
+                          }`}
                           disabled={!courseComplete}
                         >
                           Open
@@ -972,9 +981,10 @@ const SingleCourse = () => {
                     )}
                     <div className="text-white p-3 flex justify-between items-center absolute bottom-0 left-0 right-0">
                       <button
-                        className={`bg-primary py-1 px-4 rounded-md ${currentVideoIndex === 0 &&
+                        className={`bg-primary py-1 px-4 rounded-md ${
+                          currentVideoIndex === 0 &&
                           "text-gray-400 bg-gray-300 cursor-not-allowed"
-                          }`}
+                        }`}
                         onClick={() => {
                           if (currentVideoIndex > 0) {
                             handleVideoSelect(
@@ -988,9 +998,10 @@ const SingleCourse = () => {
                         Prev
                       </button>
                       <button
-                        className={`bg-primary py-1 px-4 rounded-md ${currentVideoIndex === courseData.videos.length - 1 &&
+                        className={`bg-primary py-1 px-4 rounded-md ${
+                          currentVideoIndex === courseData.videos.length - 1 &&
                           "text-gray-400 bg-gray-300 cursor-not-allowed"
-                          }`}
+                        }`}
                         onClick={() => {
                           if (
                             currentVideoIndex <
@@ -1038,14 +1049,15 @@ const SingleCourse = () => {
                   {courseData?.videos?.map((video, index) => (
                     <p
                       key={video?._id}
-                      className={`whitespace-nowrap m-3 p-2 rounded-md border ${showQuiz
-                        ? "text-gray-400 cursor-not-allowed"
-                        : selectedVideo?._id === video._id
+                      className={`whitespace-nowrap m-3 p-2 rounded-md border ${
+                        showQuiz
+                          ? "text-gray-400 cursor-not-allowed"
+                          : selectedVideo?._id === video._id
                           ? "bg-primary border-primary text-white"
                           : index < unlockedVideos
-                            ? "text-black cursor-pointer"
-                            : "text-gray-400 cursor-not-allowed"
-                        } overflow-hidden`}
+                          ? "text-black cursor-pointer"
+                          : "text-gray-400 cursor-not-allowed"
+                      } overflow-hidden`}
                       onClick={() =>
                         !showQuiz &&
                         index < unlockedVideos &&
@@ -1063,19 +1075,21 @@ const SingleCourse = () => {
                   {courseData?.videos?.length > 0 && (
                     <div className="whitespace-nowrap flex justify-between m-3 p-2 rounded-md border">
                       <p
-                        className={`px-4 rounded-md ${courseComplete
-                          ? "text-black"
-                          : "text-gray-400 cursor-not-allowed"
-                          }`}
+                        className={`px-4 rounded-md ${
+                          courseComplete
+                            ? "text-black"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
                       >
                         Quiz
                       </p>
                       <button
                         onClick={courseComplete ? handleQuizOpen : undefined}
-                        className={`px-4 rounded-md ${courseComplete
-                          ? "bg-primary text-white"
-                          : "bg-gray-300 text-gray-400 cursor-not-allowed"
-                          }`}
+                        className={`px-4 rounded-md ${
+                          courseComplete
+                            ? "bg-primary text-white"
+                            : "bg-gray-300 text-gray-400 cursor-not-allowed"
+                        }`}
                         disabled={!courseComplete}
                       >
                         Open
@@ -1084,9 +1098,10 @@ const SingleCourse = () => {
                   )}
                   <div className="text-white p-3 flex justify-between items-center absolute bottom-0 left-0 right-0">
                     <button
-                      className={`bg-primary py-1 px-4 rounded-md ${currentVideoIndex === 0 &&
+                      className={`bg-primary py-1 px-4 rounded-md ${
+                        currentVideoIndex === 0 &&
                         "text-gray-400 bg-gray-300 cursor-not-allowed"
-                        }`}
+                      }`}
                       onClick={() => {
                         if (currentVideoIndex > 0) {
                           handleVideoSelect(
@@ -1100,9 +1115,10 @@ const SingleCourse = () => {
                       Prev
                     </button>
                     <button
-                      className={`bg-primary py-1 px-4 rounded-md ${currentVideoIndex === courseData.videos.length - 1 &&
+                      className={`bg-primary py-1 px-4 rounded-md ${
+                        currentVideoIndex === courseData.videos.length - 1 &&
                         "text-gray-400 bg-gray-300 cursor-not-allowed"
-                        }`}
+                      }`}
                       onClick={() => {
                         if (currentVideoIndex < courseData.videos.length - 1) {
                           if (currentVideoIndex + 1 < unlockedVideos) {

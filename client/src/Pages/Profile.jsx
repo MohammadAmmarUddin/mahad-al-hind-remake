@@ -35,10 +35,14 @@ const Profile = () => {
     }
   }, [user?.user?._id]);
 
-  if (!userData) {
-    return <div>Loading...</div>;
-  }
 
+  if (!userData) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#047857]"></div>
+      </div>
+    );
+  }
   return (
     <div className="lg:w-3/4 w-11/12 mx-auto mt-10">
       <div className="grid md:grid-cols-7 grid-cols-1 gap-8">

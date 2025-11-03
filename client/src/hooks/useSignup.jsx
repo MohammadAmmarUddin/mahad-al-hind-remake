@@ -8,7 +8,7 @@ export const useSignup = () => {
 
     const signup = async (firstname, lastname, email, phone, role, prevRole, img, password) => {
         setError(null);
-        const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
+        const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
         try {
             const response = await fetch(`${baseUrl}/api/user/signup`, {
                 method: 'POST',

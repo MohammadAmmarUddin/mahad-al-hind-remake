@@ -21,7 +21,7 @@ const Settings = () => {
       setError("Password is required.");
       return;
     }
-    const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
+    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
     try {
       // Send request to delete the account
       const response = await axios.delete(
@@ -50,7 +50,6 @@ const Settings = () => {
     const newPassword = form.newPassword.value;
     const retypePassword = form.retypePassword.value;
 
-    console.log(oldPassword, newPassword, retypePassword, id);
     // Clear previous messages
     setMessage("");
     setError("");
@@ -70,7 +69,7 @@ const Settings = () => {
       setError("New password and confirmation do not match.");
       return;
     }
-    const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
+    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
     try {
       // Make API request
       const response = await axios.patch(

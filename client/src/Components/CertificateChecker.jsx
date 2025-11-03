@@ -44,6 +44,13 @@ const CertificateChecker = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#047857]"></div>
+            </div>
+        );
+    }
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#065f46] via-[#047857] to-[#ecfccb] p-4">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -56,7 +63,7 @@ const CertificateChecker = () => {
 
                     <input
                         type="text"
-                        placeholder="Enter Certificate ID"
+                        placeholder="Enter Certificate ID/UID"
                         value={certificateId}
                         onChange={(e) => setCertificateId(e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-600"
@@ -76,10 +83,10 @@ const CertificateChecker = () => {
                     {result ? (
                         <div
                             className={`p-6 rounded-md text-center font-semibold w-full ${result.status === "valid"
-                                    ? "bg-green-100 text-green-700"
-                                    : result.status === "invalid"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-yellow-100 text-yellow-700"
+                                ? "bg-green-100 text-green-700"
+                                : result.status === "invalid"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-yellow-100 text-yellow-700"
                                 }`}
                         >
                             <p className="text-xl mb-4">{result.message}</p>

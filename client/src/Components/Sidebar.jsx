@@ -9,7 +9,13 @@ import {
   FaUser,
   FaCertificate,
 } from "react-icons/fa";
-import { MdLibraryBooks, MdPayment, MdSchool, MdAssignmentTurnedIn } from "react-icons/md";
+import {
+  MdLibraryBooks,
+  MdPayment,
+  MdSchool,
+  MdAssignmentTurnedIn,
+  MdStar,
+} from "react-icons/md";
 import { GrUserManager, GrAddCircle } from "react-icons/gr";
 import { NavLink, useLocation } from "react-router-dom";
 import useAuthContext from "../hooks/useAuthContext";
@@ -46,7 +52,9 @@ const Sidebar = () => {
 
   const navLinkStyle = ({ isActive }, path) => {
     const isSingleCoursePage = singleCourseRegex.test(location.pathname);
-    const active = isActive || (isSingleCoursePage && path === "/dashboard/admin/manageCourses");
+    const active =
+      isActive ||
+      (isSingleCoursePage && path === "/dashboard/admin/manageCourses");
 
     return {
       backgroundColor: active ? "rgba(255, 255, 255, 0.2)" : "transparent",
@@ -73,8 +81,9 @@ const Sidebar = () => {
 
       <div
         onClick={toggleSidebar}
-        className={`fixed inset-0 z-20 bg-black bg-opacity-50 transition-opacity duration-300 lg:hidden ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+        className={`fixed inset-0 z-20 bg-black bg-opacity-50 transition-opacity duration-300 lg:hidden ${
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
       />
 
       <motion.div
@@ -83,7 +92,8 @@ const Sidebar = () => {
         transition={{ duration: 0.4, ease: "easeInOut" }}
         className="h-screen fixed left-0 top-0 bottom-0 w-64 z-50 shadow-xl overflow-y-auto scrollbar-hidden"
         style={{
-          background: "linear-gradient(to bottom right, #065f46, #047857, #064e3b)",
+          background:
+            "linear-gradient(to bottom right, #065f46, #047857, #064e3b)",
           color: "white",
           boxShadow: "inset 0 0 10px rgba(0, 0, 0, 0.4)",
         }}
@@ -107,7 +117,10 @@ const Sidebar = () => {
                 </NavLink>
               </li>
               <li>
-                <NavLink style={navLinkStyle} to={"/dashboard/admin/addCourses"}>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/addCourses"}
+                >
                   <GrAddCircle />
                   Add Course
                 </NavLink>
@@ -124,7 +137,10 @@ const Sidebar = () => {
                 </NavLink>
               </li>
               <li>
-                <NavLink style={navLinkStyle} to={"/dashboard/admin/transactionHistory"}>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/transactionHistory"}
+                >
                   <MdPayment />
                   Transaction History
                 </NavLink>
@@ -136,7 +152,10 @@ const Sidebar = () => {
                 </NavLink>
               </li>
               <li>
-                <NavLink style={navLinkStyle} to={"/dashboard/admin/addCertificate"}>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/addCertificate"}
+                >
                   <FaCertificate />
                   Add Certificate
                 </NavLink>
@@ -154,15 +173,27 @@ const Sidebar = () => {
                 </NavLink>
               </li>
               <li>
-                <NavLink style={navLinkStyle} to={"/dashboard/user/userPaymentHistory"}>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/user/userPaymentHistory"}
+                >
                   <MdPayment />
                   Transaction History
                 </NavLink>
               </li>
               <li>
-                <NavLink style={navLinkStyle} to={"/dashboard/user/userCourses"}>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/user/userCourses"}
+                >
                   <MdSchool />
                   My Classes
+                </NavLink>
+              </li>
+              <li>
+                <NavLink style={navLinkStyle} to={"/dashboard/user/userReview"}>
+                  <MdStar />
+                  Add Review
                 </NavLink>
               </li>
             </>
@@ -182,12 +213,7 @@ const Sidebar = () => {
               Courses
             </NavLink>
           </li>
-          <li>
-            <NavLink style={navLinkStyle} to={"/others"}>
-              <MdAssignmentTurnedIn />
-              Others
-            </NavLink>
-          </li>
+
           <li>
             <NavLink style={navLinkStyle} to={"/profile"}>
               <FaUser />

@@ -134,12 +134,16 @@ const Login = () => {
         <motion.button
           type="submit"
           whileTap={{ scale: 0.97 }}
-          whileHover={{ backgroundColor: "#0a4a6f", color: "#ffffff" }}
-          className="mt-6 py-3 rounded-md text-white bg-primary border-2 transition-all hover:shadow-lg"
+          whileHover={{ backgroundColor: "#059669", color: "#ffffff" }} // Emerald hover
+          className={`mt-6 py-3 rounded-lg w-full font-semibold transition-all duration-300 ${isLoading
+              ? "bg-emerald-300 cursor-not-allowed text-white"
+              : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg"
+            }`}
           disabled={isLoading}
         >
           {isLoading ? "Logging in..." : "Login"}
         </motion.button>
+
 
         <p className="text-center pt-4">
           Don't have an account?{" "}

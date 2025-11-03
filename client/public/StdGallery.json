@@ -1,0 +1,11 @@
+[
+  { "image": "/stdGallery/anam.jpg", "name": "Qari Anamul Houque Sadi" },
+  { "image": "/stdGallery/abu.jpg", "name": "Qari Abu Jar Gifari" },
+  { "image": "/stdGallery/ammar.jpg", "name": "Engineer Qari Mohammad Ammar" },
+  { "image": "/stdGallery/abdullah.jpg", "name": "Qari Abdullah Hossain" },
+
+  { "image": "/stdGallery/image_imam.png", "name": "Qari Imamul Hussain" },
+  { "image": "/stdGallery/johir.jpg", "name": "Qari Johirul Islam" },
+  { "image": "/stdGallery/arfat.jpg", "name": "Qari Tahsin Arafat" },
+  { "image": "/stdGallery/altaf.jpg", "name": "Qari Altaf Gazi" }
+]

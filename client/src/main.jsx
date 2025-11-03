@@ -7,11 +7,9 @@ import { AuthContextProvider } from "./context/AuthContext";
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-
   <AuthContextProvider>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
   </AuthContextProvider>
-
 );

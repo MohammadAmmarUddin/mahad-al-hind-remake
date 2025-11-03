@@ -27,6 +27,7 @@ import UpdateCourse from "../Pages/Dashboard/AdminDashboard/UpdateCourse";
 import Others from "../Components/Others";
 import CertificateChecker from "../Components/CertificateChecker";
 import CertificateAdd from "../Pages/Dashboard/AdminDashboard/CertificateAdd";
+import AdmissionHelp from "../Components/AdmissionHelp";
 
 export const router = createBrowserRouter([
   {
@@ -84,6 +85,10 @@ export const router = createBrowserRouter([
       {
         path: "/updateProfile",
         element: <UpdateProfile />,
+      },
+      {
+        path: "/Admission-help",
+        element: <AdmissionHelp />,
       },
     ],
   },

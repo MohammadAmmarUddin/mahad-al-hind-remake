@@ -37,7 +37,7 @@ function UpdateCourse() {
   const [totalFiles, setTotalFiles] = useState(0);
   const [error, setError] = useState("");
   const [quizzes, setQuizzes] = useState([]);
-  const baseUrl = import.meta.env. VITE_MAHAD_baseUrl;
+  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
   // Fetch course data
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -339,10 +339,10 @@ function UpdateCourse() {
                 <option disabled value="">
                   Select a category
                 </option>
-                <option>Web Development</option>
-                <option>C++</option>
-                <option>Python</option>
-                <option>Sharpe</option>
+                <option>Qira'at Hafs</option>
+                <option>Qira'at Saba</option>
+                <option>Qira'at A'shara</option>
+                <option>Muqaddamatul Jazari</option>
               </select>
             </div>
 
@@ -358,10 +358,35 @@ function UpdateCourse() {
                 <option disabled value="">
                   Select a sub-category
                 </option>
-                <option>Web Development</option>
-                <option>C++</option>
-                <option>Python</option>
-                <option>Sharpe</option>
+                <option>Ḥafṣ ʿan ʿĀṣim – Ṭarīq ash-Shāṭibiyyah</option>
+                <option>Ḥafṣ ʿan ʿĀṣim – Ṭarīq aṭ-Ṭayyibah</option>
+                <option>Shuʿbah ʿan ʿĀṣim – Ṭarīq ash-Shāṭibiyyah</option>
+
+
+                <option>Warsh ʿan Nāfiʿ – Ṭarīq al-Azraq</option>
+                <option>Warsh ʿan Nāfiʿ – Ṭarīq al-Asbahani</option>
+                <option>Qālūn ʿan Nāfiʿ – Ṭarīq ash-Shāṭibiyyah</option>
+
+                <option>ad-Dūrī ʿan Abū ʿAmr – Ṭarīq ash-Shāṭibiyyah</option>
+                <option>as-Sūsī ʿan Abū ʿAmr – Ṭarīq ash-Shāṭibiyyah</option>
+
+                <option>al-Bazzī ʿan Ibn Kathīr – Ṭarīq ash-Shāṭibiyyah</option>
+                <option>Qunbul ʿan Ibn Kathīr – Ṭarīq ash-Shāṭibiyyah</option>
+
+                <option>Khalaf ʿan Ḥamzah – Ṭarīq ash-Shāṭibiyyah</option>
+                <option>Khalād ʿan Ḥamzah – Ṭarīq ash-Shāṭibiyyah</option>
+
+                <option>Abū al-Ḥārith ʿan al-Kisāʾī – Ṭarīq ash-Shāṭibiyyah</option>
+                <option>ad-Dūrī ʿan al-Kisāʾī – Ṭarīq ash-Shāṭibiyyah</option>
+
+                <option>Ibn Wardan ʿan Abū Jaʿfar – Ṭarīq aṭ-Ṭayyibah</option>
+                <option>Ibn Jammaz ʿan Abū Jaʿfar – Ṭarīq aṭ-Ṭayyibah</option>
+
+                <option>Ruways ʿan Yaʿqūb – Ṭarīq aṭ-Ṭayyibah</option>
+                <option>Rawḥ ʿan Yaʿqūb – Ṭarīq aṭ-Ṭayyibah</option>
+
+                <option>Ishāq ʿan Khalaf al-ʿĀshir – Ṭarīq aṭ-Ṭayyibah</option>
+                <option>Idrīs ʿan Khalaf al-ʿĀshir – Ṭarīq aṭ-Ṭayyibah</option>
               </select>
             </div>
           </div>
