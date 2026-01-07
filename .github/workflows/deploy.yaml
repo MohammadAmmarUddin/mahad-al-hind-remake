@@ -1,0 +1,13 @@
+name: Ready the code and deploy
+
+on: [push,workflow_dispatch]
+
+jobs:
+  test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the Tests
+        run: |
+          node -v
+          git --version
+          

@@ -1,0 +1,31 @@
+version: "3.9"
+name: mahal-al-hind
+
+services:
+  backend:
+    build:
+      context: ./server
+    container_name: mahal-al-hind-backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - backend-logs:/app/logs   # persist logs
+    env_file:
+      - ./server/.env
+    command: npm start           # production start
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+    container_name: mahal-al-hind-client
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./client/.env.local
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  backend-logs:

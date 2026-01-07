@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import {useCallback, useRef } from "react";
 import { toPng } from "html-to-image";
 import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation and useNavigate
 import certificateTemplate from "/certificate.jpg";

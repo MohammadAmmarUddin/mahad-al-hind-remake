@@ -20,7 +20,7 @@ import AddCourses from "../Pages/Dashboard/AdminDashboard/AddCourses";
 import SingleCourse from "../Components/SingleCourse";
 import UpdateProfile from "../Pages/Dashboard/UserDashboard/UpdateProfile";
 import Profile from "../Pages/Profile";
-import Certificate from "../Components/certificate";
+import Certificate from "../Components/Certificate.jsx";
 import Settings from "../Components/Settings";
 import ScheduleMeet from "../Components/ScheduleMeet";
 import UpdateCourse from "../Pages/Dashboard/AdminDashboard/UpdateCourse";

@@ -2,7 +2,7 @@ import useAuthContext from "../hooks/useAuthContext";
 import "swiper/css";
 import "swiper/css/pagination";
 import { Link } from "react-router-dom";
-import BreakingNews from "../components/BreakingNews";
+import BreakingNews from "../Components/Breakingnews.jsx";
 import { motion } from "framer-motion";
 import StudentReview from "../Components/StudentReview";
 import StudentGallery from "../Components/StudentGallery";

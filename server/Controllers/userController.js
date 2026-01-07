@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const userModel = require("../Models/userModel.js");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const DeviceDetector = require("device-detector-js");
 const deviceDetector = new DeviceDetector();
@@ -377,7 +377,9 @@ const deleteMyAccount = async (req, res) => {
     res.status(200).json({ message: "User account deleted successfully." });
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ error: "An error occurred. Please try again later." });
+    res
+      .status(500)
+      .json({ error: "An error occurred. Please try again later." });
   }
 };
 

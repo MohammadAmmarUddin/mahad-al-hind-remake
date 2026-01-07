@@ -1,0 +1,39 @@
+version: "3.9"
+name: mahal-al-hind-dev
+
+services:
+  backend:
+    build:
+      context: ./server
+    container_name: mahal-al-hind-backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server:/app            # bind mount code
+      - /app/node_modules        # protect container's node_modules
+      - backend-logs:/app/logs
+      - ./server/.env:/app/.env
+    env_file:
+      - ./server/.env
+    command: npm start        # nodemon
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+    container_name: mahal-al-hind-client
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app            # bind mount code
+      - /app/node_modules
+      - ./client/.env.local:/app/.env.local
+    env_file:
+      - ./client/.env.local
+    command: npm run dev -- --host
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-logs:

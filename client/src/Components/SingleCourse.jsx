@@ -20,7 +20,7 @@ import Footer from "./Footer";
 import { FaRegCirclePlay } from "react-icons/fa6";
 import useAuthContext from "../hooks/useAuthContext";
 import Swal from "sweetalert2";
-import ReactHtmlParser from "react-html-parser";
+import parse from "html-react-parser";
 
 const SingleCourse = () => {
   const { id } = useParams();
@@ -622,9 +622,7 @@ const SingleCourse = () => {
         <h3 className="text-2xl font-semibold">Course Details</h3>
         <div className="border rounded-md mt-2 py-3 px-4">
           <p className="text-justify">
-            {ReactHtmlParser(
-              courseData?.details || "No course details available."
-            )}
+            {parse(courseData?.details || "No course details available.")}
           </p>
         </div>
       </div>
