@@ -6,6 +6,21 @@ jobs:
   test-code:
     runs-on: ubuntu-latest
     steps:
+      - name: copying the codes
+        uses: actions/checkout@v5
+      - name: install node-js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.15
+      - name: check node node-version
+        run: node -v
+      - name: install dependencies
+        run: npm ci
+      - name: Run the code
+        run: npm test
+  Build-code:
+    runs-on: ubuntu-latest
+    steps:
       - name: install node-js
         uses: actions/setup-node@v6
       - name: copying the codes
@@ -16,5 +31,5 @@ jobs:
         run: node -v
       - name: install dependencies
         run: npm install --frozen-lockfile
-      - name: Build the code
+      - name: Run the code
         run: npm run build
