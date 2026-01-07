@@ -12,7 +12,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20.15
-      - name: check node node-version
+      - name: check node node version
         run: node -v
       - name: install dependencies
         run: npm ci
@@ -27,9 +27,9 @@ jobs:
         uses: actions/checkout@v5
         with:
           node-version: 20.15
-      - name: check node node-version
+      - name: check node node version
         run: node -v
       - name: install dependencies
-        run: npm install --frozen-lockfile
+        run: npm ci
       - name: Run the code
         run: npm run build
