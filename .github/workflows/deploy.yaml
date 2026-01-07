@@ -1,16 +1,20 @@
 name: Ready the code and deploy
 
-on: [push,workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   test-code:
     runs-on: ubuntu-latest
     steps:
-      - name: copying the codes
-        uses: actions/checkout@v5
       - name: install node-js
         uses: actions/setup-node@v6
-        with: 
+      - name: copying the codes
+        uses: actions/checkout@v5
+        with:
           node-version: 20.15
-      - name: check node node-version 
+      - name: check node node-version
         run: node -v
+      - name: install dependencies
+        run: npm install --frozen-lockfile
+      - name: Build the code
+        run: npm run build
