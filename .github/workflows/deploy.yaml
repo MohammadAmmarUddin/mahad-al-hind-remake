@@ -21,6 +21,7 @@ jobs:
       - name: working dir
         run: pwd
   Build-code:
+    needs: test-code
     runs-on: ubuntu-latest
     steps:
       - name: install node-js
@@ -35,3 +36,9 @@ jobs:
       #   run: npm ci
       # - name: Run the code
       #   run: npm run build
+  Deploy-code:
+    runs-on: ubuntu-latest
+    needs: Build-code
+    steps:
+      - name: deploying
+        run: echo "deploying codes to ..."
