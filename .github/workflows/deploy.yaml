@@ -14,8 +14,8 @@ jobs:
           node-version: 20.15
       - name: check node node version
         run: node -v
-      - name: install dependencies
-        run: npm ci
+      # - name: install dependencies
+      #   run: npm ci
       # - name: Run the code
       #   run: npm test
       - name: working dir
@@ -31,7 +31,7 @@ jobs:
           node-version: 20.15
       - name: check node node version
         run: node -v
-      - name: install dependencies
-        run: npm ci
+      # - name: install dependencies
+      #   run: npm ci
       # - name: Run the code
       #   run: npm run build
