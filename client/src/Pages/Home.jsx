@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import StudentReview from "../Components/StudentReview";
 import StudentGallery from "../Components/StudentGallery";
 import PagriGallery from "../Components/PagriGallery";
+import UpdateBanner from "../Components/UpdateBanner.jsx";
+import VideoSection from "../Components/VideoSection.jsx";
 const Home = () => {
   const { user } = useAuthContext();
   // const [courses, setCourses] = useState([]);
@@ -79,7 +81,9 @@ const Home = () => {
       </div>
 
       {/* Full width student review */}
-      <StudentReview />
+      <UpdateBanner />
+      <VideoSection />
+      {/* <StudentReview /> */}
       <StudentGallery />
       <PagriGallery />
     </div>

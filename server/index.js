@@ -4,7 +4,7 @@ const express = require("express");
 const helmet = require("helmet");
 
 // Use helmet middleware for secure headers
-
+const dns = require("dns");
 const userRoutes = require("./Routes/userRoutes.js");
 const orderRoutes = require("./Routes/order.js");
 const meetRoutes = require("./Routes/meetRoutes.js");
@@ -16,13 +16,9 @@ require("dotenv").config();
 const app = express();
 const baseUrl = process.env.BASE_URL;
 console.log("🚀 ~ baseUrl:", baseUrl);
-app.use(
-  cors({
-    origin: baseUrl, // Your frontend URL
-    methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true, // If needed for cookies/auth
-  })
-);
+
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 // Middleware to parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,35 +31,39 @@ app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/meet", meetRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/review", reviewRoutes);
+const videoRoutes = require("./Routes/videoRoutes.js"); // ✅ add import at top
 
+// then with your other routes:
+app.use("/api/videos", videoRoutes); // ✅ add route
 // Test route
 app.get("/", async (req, res) => {
   res.send("Server is working!");
 });
 
 // Set CSP headers
-app.use((req, res, next) => {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"
-  );
-  next();
-});
+app.use(
+  cors({
+    origin: ["http://localhost:5173", baseUrl], // allow both local + production
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    credentials: true,
+  }),
+);
 
-app.use("/api/orders", orderRoutes );
-
+app.use("/api/orders", orderRoutes);
 const MONGODB_URI = process.env.MONGODB_URI;
-
+console.log("check uri", MONGODB_URI);
 mongoose
-  .connect(MONGODB_URI)
+  .connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 10000,
+    family: 4,
+  })
   .then(() => {
-    // Listen for requests
-    console.log("Successfully Connected to DB");
+    console.log("✅ MongoDB Connected");
+
     app.listen(process.env.PORT || 4000, () => {
-      // Added default port 4000
-      console.log(`Listening on PORT ${process.env.PORT || 4000}`);
+      console.log(`🚀 Server running on ${process.env.PORT || 4000}`);
     });
   })
-  .catch((error) => {
-    console.log("Error connecting to DB: " + error.message);
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
   });

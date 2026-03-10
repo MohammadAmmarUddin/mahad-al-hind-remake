@@ -8,7 +8,6 @@ import AdminHome from "../Pages/Dashboard/AdminDashboard/AdminHome";
 import AllUsers from "../Pages/Dashboard/AdminDashboard/AllUsers";
 import UserHome from "../Pages/Dashboard/UserDashboard/UserHome";
 import AllCourses from "../Components/AllCourses";
-
 import AddReview from "../Pages/Dashboard/UserDashboard/AddReview";
 import PaymentHistory from "../Pages/Dashboard/UserDashboard/PaymentHistory";
 import ForgetPassword from "../Components/ForgetPassword";
@@ -28,138 +27,63 @@ import Others from "../Components/Others";
 import CertificateChecker from "../Components/CertificateChecker";
 import CertificateAdd from "../Pages/Dashboard/AdminDashboard/CertificateAdd";
 import AdmissionHelp from "../Components/AdmissionHelp";
+import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos"; // ✅ NEW
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <Main />,
     children: [
-      {
-        path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/signup",
-        element: <Signup />,
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/others",
-        element: <Others />,
-      },
-      {
-        path: "/forgetPassword",
-        element: <ForgetPassword />,
-      },
-      {
-        path: "/resetPassword/:token",
-        element: <ResetPassword />,
-      },
-      {
-        path: "/allCourses",
-        element: <AllCourses />,
-      },
-      {
-        path: "/singleCourse/:id",
-        element: <SingleCourse />,
-      },
-      {
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        path: "/settings",
-        element: <Settings />,
-      },
-      {
-        path: "/certificate",
-        element: <Certificate />,
-      },
-      {
-        path: "/certificate-checker",
-        element: <CertificateChecker />,
-      },
-      {
-        path: "/updateProfile",
-        element: <UpdateProfile />,
-      },
-      {
-        path: "/Admission-help",
-        element: <AdmissionHelp />,
-      },
+      { path: "/", element: <Home /> },
+      { path: "/signup", element: <Signup /> },
+      { path: "/login", element: <Login /> },
+      { path: "/others", element: <Others /> },
+      { path: "/forgetPassword", element: <ForgetPassword /> },
+      { path: "/resetPassword/:token", element: <ResetPassword /> },
+      { path: "/allCourses", element: <AllCourses /> },
+      { path: "/singleCourse/:id", element: <SingleCourse /> },
+      { path: "/profile", element: <Profile /> },
+      { path: "/settings", element: <Settings /> },
+      { path: "/certificate", element: <Certificate /> },
+      { path: "/certificate-checker", element: <CertificateChecker /> },
+      { path: "/updateProfile", element: <UpdateProfile /> },
+      { path: "/Admission-help", element: <AdmissionHelp /> },
     ],
   },
 
-  //admin dashboard
+  // ── Admin Dashboard ──
   {
     path: "/dashboard/admin",
     element: <Dashboard />,
     children: [
-      {
-        path: "/dashboard/admin/adminHome",
-        element: <AdminHome />,
-      },
-      {
-        path: "/dashboard/admin/addCourses",
-        element: <AddCourses />,
-      },
-      {
-        path: "/dashboard/admin/updateCourse/:id",
-        element: <UpdateCourse />,
-      },
-      {
-        path: "/dashboard/admin/manageCourses",
-        element: <ManageCourses />,
-      },
-
-      {
-        path: "/dashboard/admin/schedulemeet",
-        element: <ScheduleMeet />,
-      },
+      { path: "/dashboard/admin/adminHome", element: <AdminHome /> },
+      { path: "/dashboard/admin/addCourses", element: <AddCourses /> },
+      { path: "/dashboard/admin/updateCourse/:id", element: <UpdateCourse /> },
+      { path: "/dashboard/admin/manageCourses", element: <ManageCourses /> },
+      { path: "/dashboard/admin/schedulemeet", element: <ScheduleMeet /> },
       {
         path: "/dashboard/admin/transactionHistory",
         element: <AllTransactions />,
       },
-      {
-        path: "/dashboard/admin/allUsers",
-        element: <AllUsers />,
-      },
-      {
-        path: "/dashboard/admin/addCertificate",
-        element: <CertificateAdd />,
-      },
+      { path: "/dashboard/admin/allUsers", element: <AllUsers /> },
+      { path: "/dashboard/admin/addCertificate", element: <CertificateAdd /> },
+      { path: "/dashboard/admin/manageVideos", element: <ManageVideos /> }, // ✅ NEW
     ],
   },
 
-  //user dashboard
+  // ── User Dashboard ──
   {
     path: "/dashboard/user",
     element: <Dashboard />,
     children: [
-      {
-        path: "/dashboard/user/userHome",
-        element: <UserHome />,
-      },
-
+      { path: "/dashboard/user/userHome", element: <UserHome /> },
       {
         path: "/dashboard/user/userPaymentHistory",
         element: <PaymentHistory />,
       },
-      {
-        path: "/dashboard/user/userCourses",
-        element: <MyClasses />,
-      },
-      {
-        path: "/dashboard/user/userReview",
-        element: <AddReview />,
-      },
-      {
-        path: "/dashboard/user/userCertificate",
-        element: <Certificate />,
-      },
+      { path: "/dashboard/user/userCourses", element: <MyClasses /> },
+      { path: "/dashboard/user/userReview", element: <AddReview /> },
+      { path: "/dashboard/user/userCertificate", element: <Certificate /> },
     ],
   },
 ]);

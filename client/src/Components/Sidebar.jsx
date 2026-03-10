@@ -8,6 +8,7 @@ import {
   FaBars,
   FaUser,
   FaCertificate,
+  FaVideo,
 } from "react-icons/fa";
 import {
   MdLibraryBooks,
@@ -158,6 +159,15 @@ const Sidebar = () => {
                 >
                   <FaCertificate />
                   Add Certificate
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/manageVideos"}
+                >
+                  <FaVideo />
+                  Manage Videos
                 </NavLink>
               </li>
             </>
