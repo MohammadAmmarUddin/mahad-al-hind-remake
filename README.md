@@ -81,12 +81,9 @@ cp client/.env.example client/.env
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-📍 Access:
+###Just For Test Admin Login
+Admin - Admin
 
-* Client → [http://localhost:3000](http://localhost:3000)
-* Server → [http://localhost:5000](http://localhost:5000)
-
----
 
 ### 💻 Run Without Docker
 
