@@ -67,6 +67,11 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
     },
+    preferredLanguage: {
+      type: String,
+      enum: ["en", "bn"],
+      default: "en",
+    },
   },
   { timestamps: true }
 );

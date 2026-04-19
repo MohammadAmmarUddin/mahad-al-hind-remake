@@ -8,12 +8,14 @@ import { MdLogout } from "react-icons/md";
 import { HiMenu } from "react-icons/hi";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const Navbar = () => {
   const { user } = useAuthContext();
   const [userData, setUserData] = useState(null);
   const { logout } = useLogout();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { language, setLanguage, translate } = useSiteContent();
 
   const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
 
@@ -41,55 +43,87 @@ const Navbar = () => {
     transition: { duration: 0.3 },
   };
 
+  const navItems = [
+    { to: "/", label: translate("navbar", "home") },
+    {
+      to:
+        user?.user?.role === "admin"
+          ? "/dashboard/admin/adminHome"
+          : user?.user?.role === "user"
+          ? "/dashboard/user/userHome"
+          : null,
+      label: translate("navbar", "dashboard"),
+    },
+    { to: "/allCourses", label: translate("navbar", "courses") },
+    {
+      to: "/certificate-checker",
+      label: translate("navbar", "certificateChecker"),
+    },
+    { to: "/Admission-help", label: translate("navbar", "admissionHelp") },
+  ].filter((link) => link.to);
+
   return (
     <motion.div
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed top-0 left-0 w-full z-50 bg-white shadow-md"
+      className="fixed top-0 left-0 z-50 w-full bg-white shadow-md"
     >
-      <div className="lg:w-3/4 w-11/12 mx-auto py-3">
-        <div className="flex justify-between items-center">
+      <div className="mx-auto w-11/12 py-3 xl:w-3/4">
+        <div className="flex items-center justify-between gap-3 xl:gap-6">
           {/* Logo */}
-          <div className="w-20">
+          <div className="w-16 shrink-0 sm:w-20">
             <Link to={"/"}>
               <img src={logo} alt="Logo" className="w-full object-contain" />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-6">
-            {[
-              { to: "/", label: "Home" },
-              {
-                to:
-                  user?.user?.role === "admin"
-                    ? "/dashboard/admin/adminHome"
-                    : user?.user?.role === "user"
-                    ? "/dashboard/user/userHome"
-                    : null,
-                label: "Dashboard",
-              },
-              { to: "/allCourses", label: "Courses" },
-              { to: "/certificate-checker", label: "Certificate Checker" },
-              { to: "/Admission-help", label: "Admission Help" },
-            ]
-              .filter((link) => link.to)
-              .map((link, idx) => (
-                <motion.div key={idx} {...navLinkHoverEffect}>
-                  <Link to={link.to} className={navLinkClasses}>
-                    {link.label}
-                  </Link>
-                </motion.div>
-              ))}
+          <div className="hidden flex-1 items-center justify-center gap-1 min-[1180px]:flex xl:gap-2">
+            {navItems.map((link, idx) => (
+              <motion.div key={idx} {...navLinkHoverEffect} className="min-w-0">
+                <Link
+                  to={link.to}
+                  className={`${navLinkClasses} block max-w-[170px] truncate px-3 xl:max-w-none`}
+                  title={link.label}
+                >
+                  {link.label}
+                </Link>
+              </motion.div>
+            ))}
           </div>
 
           {/* Profile / Auth */}
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <div className="hidden items-center rounded-full border border-emerald-200 bg-emerald-50 p-1 md:flex">
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  language === "en"
+                    ? "bg-emerald-700 text-white"
+                    : "text-emerald-700"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("bn")}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  language === "bn"
+                    ? "bg-emerald-700 text-white"
+                    : "text-emerald-700"
+                }`}
+              >
+                বাং
+              </button>
+            </div>
+
             {/* Mobile Toggle */}
             <button
               onClick={toggleMenu}
-              className="lg:hidden text-2xl text-emerald-700"
+              className="text-2xl text-emerald-700 min-[1180px]:hidden"
             >
               <HiMenu />
             </button>
@@ -99,9 +133,9 @@ const Navbar = () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="hidden lg:flex items-center bg-emerald-600 rounded-full px-3 py-1"
+                className="hidden items-center rounded-full bg-emerald-600 px-3 py-1 min-[1180px]:flex"
               >
-                <p className="text-white font-medium hidden sm:block">
+                <p className="hidden max-w-[140px] truncate text-white sm:block">
                   {userData?.firstname} {userData?.lastname}
                 </p>
                 <div className="dropdown dropdown-end ml-3">
@@ -124,32 +158,32 @@ const Navbar = () => {
                   >
                     <li>
                       <Link to="/profile" className="flex items-center gap-2">
-                        <CgProfile /> Profile
+                        <CgProfile /> {translate("navbar", "profile")}
                       </Link>
                     </li>
                     <li>
                       <Link to="/settings" className="flex items-center gap-2">
-                        <IoSettingsOutline /> Settings
+                        <IoSettingsOutline /> {translate("navbar", "settings")}
                       </Link>
                     </li>
                     <li onClick={logout}>
                       <span className="flex items-center gap-2 cursor-pointer">
-                        <MdLogout /> Logout
+                        <MdLogout /> {translate("navbar", "logout")}
                       </span>
                     </li>
                   </ul>
                 </div>
               </motion.div>
             ) : (
-              <div className="hidden lg:flex items-center gap-3 font-semibold">
+              <div className="hidden items-center gap-3 font-semibold min-[1180px]:flex">
                 <Link to="/login" className="text-emerald-700 hover:underline">
-                  Login
+                  {translate("navbar", "login")}
                 </Link>
                 <Link
                   to="/signup"
                   className="bg-emerald-600 text-white px-3 py-1 rounded-md hover:bg-emerald-700 transition"
                 >
-                  Signup
+                  {translate("navbar", "signup")}
                 </Link>
               </div>
             )}
@@ -163,30 +197,37 @@ const Navbar = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="lg:hidden mt-3 flex flex-col gap-3 p-4 bg-white border rounded-md shadow-md text-emerald-700 font-medium"
+              className="mt-3 flex flex-col gap-3 rounded-md border bg-white p-4 font-medium text-emerald-700 shadow-md min-[1180px]:hidden"
             >
-              <Link to="/" onClick={toggleMenu}>
-                Home
-              </Link>
-              {user?.user?.role === "admin" && (
-                <Link to="/dashboard/admin/adminHome" onClick={toggleMenu}>
-                  Dashboard
+              <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm">
+                <span>{translate("navbar", "language")}</span>
+                <div className="flex items-center rounded-full border border-emerald-200 bg-white p-1">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("en")}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      language === "en" ? "bg-emerald-700 text-white" : ""
+                    }`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("bn")}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      language === "bn" ? "bg-emerald-700 text-white" : ""
+                    }`}
+                  >
+                    বাং
+                  </button>
+                </div>
+              </div>
+
+              {navItems.map((item) => (
+                <Link key={item.to} to={item.to} onClick={toggleMenu}>
+                  {item.label}
                 </Link>
-              )}
-              {user?.user?.role === "user" && (
-                <Link to="/dashboard/user/userHome" onClick={toggleMenu}>
-                  Dashboard
-                </Link>
-              )}
-              <Link to="/allCourses" onClick={toggleMenu}>
-                Courses
-              </Link>
-              <Link to="/certificate-checker" onClick={toggleMenu}>
-                Certificate Checker
-              </Link>
-              <Link to="/Admission-help" onClick={toggleMenu}>
-                Admission Help
-              </Link>
+              ))}
 
               {/* Mobile Auth Buttons */}
               {!user && (
@@ -196,14 +237,14 @@ const Navbar = () => {
                     onClick={toggleMenu}
                     className="text-emerald-700 hover:underline"
                   >
-                    Login
+                    {translate("navbar", "login")}
                   </Link>
                   <Link
                     to="/signup"
                     onClick={toggleMenu}
                     className="bg-emerald-600 text-white px-3 py-1 rounded-md hover:bg-emerald-700 transition text-center"
                   >
-                    Signup
+                    {translate("navbar", "signup")}
                   </Link>
                 </div>
               )}

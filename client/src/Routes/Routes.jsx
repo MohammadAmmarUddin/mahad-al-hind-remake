@@ -28,6 +28,11 @@ import CertificateChecker from "../Components/CertificateChecker";
 import CertificateAdd from "../Pages/Dashboard/AdminDashboard/CertificateAdd";
 import AdmissionHelp from "../Components/AdmissionHelp";
 import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos"; // ✅ NEW
+import HomeSectionManager from "../Pages/Dashboard/AdminDashboard/HomeSectionManager";
+import FileUploader from "../Pages/Dashboard/AdminDashboard/FileUploader";
+import ManageStudentGallery from "../Pages/Dashboard/AdminDashboard/ManageStudentGallery";
+import ManageFareginGallery from "../Pages/Dashboard/AdminDashboard/ManageFareginGallery";
+import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
 
 export const router = createBrowserRouter([
   {
@@ -68,6 +73,26 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/allUsers", element: <AllUsers /> },
       { path: "/dashboard/admin/addCertificate", element: <CertificateAdd /> },
       { path: "/dashboard/admin/manageVideos", element: <ManageVideos /> }, // ✅ NEW
+      {
+        path: "/dashboard/admin/homeSections",
+        element: <HomeSectionManager />,
+      },
+      {
+        path: "/dashboard/admin/fileUploader",
+        element: <FileUploader />,
+      },
+      {
+        path: "/dashboard/admin/studentGallery",
+        element: <ManageStudentGallery />,
+      },
+      {
+        path: "/dashboard/admin/fareginGallery",
+        element: <ManageFareginGallery />,
+      },
+      {
+        path: "/dashboard/admin/enrollmentSettings",
+        element: <EnrollmentSettings />,
+      },
     ],
   },
 

@@ -1,20 +1,22 @@
-import React from "react";
-
 const GalleryCard = ({ image, name }) => {
-    return (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:scale-105 transition-transform duration-300 w-full max-w-sm">
-            <div className="w-full h-60 flex items-center justify-center bg-gray-50">
-                <img
-                    src={image}
-                    alt={name}
-                    className="max-h-full max-w-full object-contain"
-                />
-            </div>
-            <div className="p-4 text-center">
-                <h3 className="text-lg font-semibold text-emerald-700">{name}</h3>
-            </div>
-        </div>
-    );
+  return (
+    <article className="mx-auto w-full max-w-sm overflow-hidden rounded-[24px] border border-white/60 bg-white shadow-[0_22px_60px_rgba(16,24,40,0.12)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(16,24,40,0.16)]">
+      <div className="relative aspect-[4/4.5] w-full overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-sky-50">
+        <img
+          src={image}
+          alt={name}
+          className="h-full w-full object-cover transition duration-700 hover:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
+      </div>
+      <div className="px-4 py-4 text-center sm:px-5">
+        <h3 className="line-clamp-2 min-h-12 text-base font-semibold text-emerald-800 sm:text-lg">
+          {name || " "}
+        </h3>
+      </div>
+    </article>
+  );
 };
 
 export default GalleryCard;

@@ -1,8 +1,11 @@
 import Marquee from "react-fast-marquee";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const BreakingNews = () => {
+  const { translate } = useSiteContent();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -20,7 +23,9 @@ const BreakingNews = () => {
             className="relative inline-flex items-center justify-center font-semibold text-white   transition duration-300"
           >
             {/* <span className="absolute -inset-0.5 animate-ping bg-emerald-400 rounded-xl opacity-20"></span> */}
-            <span className="relative z-10 text-black">📢 Breaking News</span>
+            <span className="relative z-10 text-black">
+              📢 {translate("breakingNews", "label")}
+            </span>
           </motion.button>
         </Link>
 
@@ -33,7 +38,7 @@ const BreakingNews = () => {
           gradientWidth={60}
           className="font-medium text-[15px] md:text-base text-emerald-800 tracking-wide gap-x-10"
         >
-          ভর্তি চলছে মা'হাদুল কিরা'আত আল হিন্দে অনলাইন ও অফলাইন | কিরা'আত এ সাবা ও আশা'রার ভর্তি চলছে । যোগাযোগ : +919365262648 | +8801883128299
+          {translate("breakingNews", "message")}
         </Marquee>
       </div>
     </motion.div>

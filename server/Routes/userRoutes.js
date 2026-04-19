@@ -15,6 +15,7 @@ const {
   changePassword,
   googleLogin,
   deleteMyAccount,
+  updateLanguagePreference,
 } = require("../Controllers/userController.js");
 
 const router = express.Router();
@@ -45,5 +46,6 @@ router.patch("/makeAdmin/:id", makeAdmin);
 router.patch("/undoAdmin/:id", undoAdmin);
 router.patch("/updateUser/:id", updateUser);
 router.patch("/changePassword", changePassword);
+router.patch("/languagePreference/:id", updateLanguagePreference);
 
 module.exports = router;

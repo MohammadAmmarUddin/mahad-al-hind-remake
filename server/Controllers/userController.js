@@ -383,6 +383,35 @@ const deleteMyAccount = async (req, res) => {
   }
 };
 
+const updateLanguagePreference = async (req, res) => {
+  const { id } = req.params;
+  const { preferredLanguage } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ error: "Invalid ID" });
+  }
+
+  if (!["en", "bn"].includes(preferredLanguage)) {
+    return res.status(400).json({ error: "Invalid language selection" });
+  }
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(
+      id,
+      { preferredLanguage },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(updatedUser);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   signupUser,
   loginUser,
@@ -398,4 +427,5 @@ module.exports = {
   changePassword,
   googleLogin,
   deleteMyAccount,
+  updateLanguagePreference,
 };

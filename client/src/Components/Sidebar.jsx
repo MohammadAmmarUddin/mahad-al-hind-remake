@@ -9,6 +9,10 @@ import {
   FaUser,
   FaCertificate,
   FaVideo,
+  FaImages,
+  FaSlidersH,
+  FaUserFriends,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import {
   MdLibraryBooks,
@@ -168,6 +172,51 @@ const Sidebar = () => {
                 >
                   <FaVideo />
                   Manage Videos
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/homeSections"}
+                >
+                  <FaSlidersH />
+                  Home Sections
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/fileUploader"}
+                >
+                  <FaImages />
+                  File Uploader
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/enrollmentSettings"}
+                >
+                  <FaCalendarAlt />
+                  Enrollment Notice
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/studentGallery"}
+                >
+                  <FaUserFriends />
+                  Student Gallery
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/fareginGallery"}
+                >
+                  <FaImages />
+                  Faregin Gallery
                 </NavLink>
               </li>
             </>

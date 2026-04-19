@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaArrowRight, FaTimesCircle } from "react-icons/fa";
+import { useSiteContent } from "../context/SiteContentContext";
 
 const VortiCholche = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const { content, language } = useSiteContent();
+  const widget = content?.enrollmentWidget;
+
+  if (!widget?.isVisible) {
+    return null;
+  }
+
+  const pick = (field) => widget?.[field]?.[language] || widget?.[field]?.en || "";
 
   return (
     <div className="fixed z-50 bottom-10 left-6 hidden md:block">
@@ -30,7 +39,7 @@ const VortiCholche = () => {
 
             {/* Title */}
             <h3 className="text-lg font-bold mb-4 tracking-wide">
-              📢 ভর্তি চলছে
+              📢 {pick("title")}
             </h3>
 
             {/* Dates */}
@@ -38,16 +47,16 @@ const VortiCholche = () => {
               <div className="flex items-center gap-3">
                 <FaArrowRight className="text-white" />
                 <p>
-                  এনরোলমেন্ট শুরু:{" "}
-                  <span className="font-bold">১ ফেব্রুয়ারী, 2026</span>
+                  {pick("startLabel")}:{" "}
+                  <span className="font-bold">{widget?.startDate}</span>
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
                 <FaTimesCircle className="text-white" />
                 <p>
-                  এনরোলমেন্ট শেষ:{" "}
-                  <span className="font-bold">১০রমাদান, 2026</span>
+                  {pick("endLabel")}:{" "}
+                  <span className="font-bold">{widget?.endDate}</span>
                 </p>
               </div>
             </div>
@@ -68,7 +77,7 @@ const VortiCholche = () => {
             transition-all duration-300
           "
         >
-          ভর্তি চলছে
+          {pick("reopenLabel")}
         </button>
       )}
     </div>
