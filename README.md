@@ -6,7 +6,8 @@ Built with a modern full-stack architecture using React, Node.js, and Dockerized
 🌐 **Live:** [https://mahad-al-hind.netlify.app](https://mahad-al-hind.netlify.app)
 
 ---
-
+## 📌 For Testing
+Admin:Admin
 ## 📌 Overview
 
 This project represents the official web presence of the institute — designed to showcase:
