@@ -1,144 +1,201 @@
-Ma'hadul Qiraat Al Hind — Full Stack Web Platform
+# 🌙 Ma'hadul Qiraat Al Hind — Full Stack Web Platform
 
-Official web platform for Ma'hadul Qiraat Al Hind, a premier Quranic education institute. Built with a modern full-stack architecture featuring a React-based client and a Node.js/Express REST API, containerized with Docker and deployed via CI/CD pipelines.
+Official digital platform for **Ma'hadul Qiraat Al Hind**, a Quranic education institute.
+Built with a modern full-stack architecture using React, Node.js, and Dockerized infrastructure.
 
-🌐 Live: mahad-al-hind.netlify.app
+🌐 **Live:** [https://mahad-al-hind.netlify.app](https://mahad-al-hind.netlify.app)
 
-Table of Contents
+---
 
-Overview
-Tech Stack
-Project Structure
-Getting Started
+## 📌 Overview
 
-Prerequisites
-Development (Docker)
-Local Setup Without Docker
+This project represents the official web presence of the institute — designed to showcase:
 
+* Quranic courses & programs
+* Admission information
+* Scholars & instructors
+* Institutional activities
 
-Environment Variables
-Docker
-CI/CD
-Scripts
-Contributing
-Author
+The project follows a **monorepo architecture**:
 
+* `client/` → React frontend (SPA)
+* `server/` → REST API (Node.js + Express)
 
-Overview
-This is a full-stack remake of the Ma'hadul Qiraat Al Hind institutional website. The platform serves as the official digital presence of the institute — showcasing courses, admissions, scholars, and Quranic education programs.
-The project is structured as a monorepo with two primary workspaces:
+---
 
-client/ — React.js frontend (SPA)
-server/ — Node.js + Express REST API backend
+## ⚙️ Tech Stack
 
-Both services are orchestrated via Docker Compose for local development and production environments.
+| Layer      | Technology             |
+| ---------- | ---------------------- |
+| Frontend   | React.js               |
+| Backend    | Node.js, Express.js    |
+| Database   | MongoDB (Mongoose)     |
+| DevOps     | Docker, Docker Compose |
+| CI/CD      | GitHub Actions         |
+| Deployment | Netlify (Frontend)     |
 
-Tech Stack
-LayerTechnologyFrontendReact.js, JavaScriptBackendNode.js, Express.jsDatabaseMongoDB (via Mongoose)ContainerizationDocker, Docker ComposeCI/CDGitHub ActionsDeploymentNetlify (client), configurable for serverDev EnvironmentVS Code Dev Containers
+---
 
-Project Structure
+## 🗂 Project Structure
+
+```
 mahad-al-hind-remake/
-├── client/                  # React frontend application
-│   ├── public/
-│   └── src/
-├── server/                  # Node.js + Express backend API
+├── client/                # React frontend
+├── server/                # Express backend
 │   ├── controllers/
 │   ├── models/
 │   ├── routes/
 │   └── index.js
-├── .github/
-│   └── workflows/           # GitHub Actions CI/CD pipelines
-├── .devcontainer/           # VS Code Dev Container configuration
-├── .vscode/                 # Workspace settings
-├── docker-compose.dev.yml   # Docker Compose for development
-├── docker-compose.prod.yml  # Docker Compose for production
-├── .dockerignore
-├── .gitignore
+├── .github/workflows/     # CI/CD pipelines
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
 └── README.md
+```
 
-Getting Started
-Prerequisites
-Make sure you have the following installed on your machine:
+---
 
-Node.js v18+
-Docker & Docker Compose
-Git
+## 🚀 Getting Started
 
-Development (Docker)
-The recommended way to run the project locally is via Docker Compose.
-bash# Clone the repository
+### 🔧 Prerequisites
+
+Make sure you have installed:
+
+* Node.js (v18+)
+* Docker & Docker Compose
+* Git
+
+---
+
+### 🐳 Run with Docker (Recommended)
+
+```bash
+# Clone repo
 git clone https://github.com/MohammadAmmarUddin/mahad-al-hind-remake.git
 cd mahad-al-hind-remake
 
-# Copy and configure environment variables
+# Setup environment variables
 cp server/.env.example server/.env
 cp client/.env.example client/.env
 
-# Start development environment
+# Run project
 docker compose -f docker-compose.dev.yml up --build
-Once running:
+```
 
-Client → http://localhost:3000
-Server → http://localhost:5000
+📍 Access:
 
-Local Setup Without Docker
-If you prefer to run each service individually:
-Backend
-bashcd server
+* Client → [http://localhost:3000](http://localhost:3000)
+* Server → [http://localhost:5000](http://localhost:5000)
+
+---
+
+### 💻 Run Without Docker
+
+#### Backend
+
+```bash
+cd server
 npm install
 npm run dev
-Frontend
-bashcd client
+```
+
+#### Frontend
+
+```bash
+cd client
 npm install
 npm start
+```
 
-Environment Variables
-Server (server/.env)
-envPORT=5000
+---
+
+## 🔐 Environment Variables
+
+### Server (`server/.env`)
+
+```env
+PORT=5000
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+JWT_SECRET=your_secret
 NODE_ENV=development
-Client (client/.env)
-envREACT_APP_API_URL=http://localhost:5000/api
+```
 
-Never commit .env files. They are listed in .gitignore.
+### Client (`client/.env`)
 
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+```
 
-Docker
-Two Docker Compose configurations are provided:
-Development — includes hot reload and volume mounts:
-bashdocker compose -f docker-compose.dev.yml up --build
-Production — optimized builds, no dev dependencies:
-bashdocker compose -f docker-compose.prod.yml up --build -d
+⚠️ Never commit `.env` files.
 
-CI/CD
-The project uses GitHub Actions for automated workflows. Pipelines are located in .github/workflows/.
-Typical workflow includes:
+---
 
-Linting and build checks on pull requests
-Automated deployment to Netlify on push to master
+## 🐳 Docker Setup
 
+### Development
 
-Scripts
-Server
-CommandDescriptionnpm run devStart server with nodemon (hot reload)npm startStart server in production mode
-Client
-CommandDescriptionnpm startStart React development servernpm run buildCreate production buildnpm testRun test suite
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
 
-Contributing
-This is an institutional project. If you'd like to suggest improvements or report an issue, feel free to open an Issue or submit a Pull Request.
+### Production
 
-Fork the repository
-Create your feature branch: git checkout -b feature/your-feature-name
-Commit your changes: git commit -m "feat: add your feature"
-Push to the branch: git push origin feature/your-feature-name
-Open a Pull Request
+```bash
+docker compose -f docker-compose.prod.yml up --build -d
+```
 
+---
 
-Author
-Engineer Qari Muhammad Ammar Uddin
-Full-Stack Developer | Qari of the Quran
-Chittagong, Bangladesh
+## 🔄 CI/CD
 
-GitHub: @MohammadAmmarUddin
-Contact: +8801883128299
+Automated using **GitHub Actions**
+
+Includes:
+
+* Code linting & build checks
+* Auto deployment (Netlify on push to `main/master`)
+
+---
+
+## 📜 Scripts
+
+### Server
+
+```bash
+npm run dev     # Development (nodemon)
+npm start       # Production
+```
+
+### Client
+
+```bash
+npm start       # Dev server
+npm run build   # Production build
+npm test        # Run tests
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+```bash
+1. Fork the repo
+2. Create branch → feature/your-feature
+3. Commit → feat: your update
+4. Push & open PR
+```
+
+Or open an issue for suggestions.
+
+---
+
+## 👤 Author
+
+**Engineer Qari Muhammad Ammar Uddin**
+Full-Stack Developer • Qari of the Quran
+
+* GitHub: [https://github.com/MohammadAmmarUddin](https://github.com/MohammadAmmarUddin)
+* Contact: +8801883128299
+
+---
