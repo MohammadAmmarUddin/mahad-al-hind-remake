@@ -1,10 +1,10 @@
+const crypto = require("crypto");
 const mongoose = require("mongoose");
 const GalleryItem = require("../Models/galleryItemModel");
 const User = require("../Models/userModel");
 const {
   destroyCloudinaryAsset,
   isCloudinaryConfigured,
-  uploadBufferToCloudinary,
 } = require("../Utils/cloudinary");
 
 const allowedGalleryTypes = ["student", "faregin", "general"];
@@ -103,52 +103,25 @@ const uploadGalleryImage = async (req, res) => {
       });
     }
 
-    if (!isCloudinaryConfigured()) {
-      return res.status(500).json({
-        success: false,
-        message: "Image storage is not configured",
-      });
-    }
+    const { imageUrl, publicId, title, sortOrder, isVisible } = req.body;
 
-    if (!req.file) {
+    if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.trim()) {
       return res.status(400).json({
         success: false,
-        message: "No image file provided",
+        message: "Image URL is required. Upload the file directly to Cloudinary from the browser first.",
       });
     }
 
-    if (!req.file.mimetype || !req.file.mimetype.startsWith("image/")) {
-      return res.status(400).json({
-        success: false,
-        message: "Only image files are allowed",
-      });
-    }
-
-    const maxSize = 10 * 1024 * 1024;
-    if (req.file.size > maxSize) {
-      return res.status(400).json({
-        success: false,
-        message: "File is too large. Maximum size is 10MB.",
-      });
-    }
-
-    const uploaded = await uploadBufferToCloudinary(req.file.buffer, {
-      folder: "galleries",
-      resourceType: "image",
-      originalName: req.file.originalname,
-      mimeType: req.file.mimetype,
-    });
-
-    const title = (req.body.title || "").trim();
+    const itemTitle = (title || "").trim();
     const item = await GalleryItem.create({
       galleryType,
-      name: title,
-      title,
-      imageUrl: uploaded.secureUrl,
-      publicId: uploaded.publicId,
+      name: itemTitle,
+      title: itemTitle,
+      imageUrl: imageUrl.trim(),
+      publicId: (publicId || "").trim(),
       resourceType: "image",
-      sortOrder: parseInt(req.body.sortOrder) || 0,
-      isVisible: req.body.isVisible !== "false" && req.body.isVisible !== false,
+      sortOrder: parseInt(sortOrder) || 0,
+      isVisible: isVisible !== false,
       uploadedBy: req.adminUser?._id || req.user?._id,
     });
 
@@ -177,10 +150,6 @@ const createGalleryItem = async (req, res) => {
         success: false,
         message: "Invalid gallery type",
       });
-    }
-
-    if (req.file) {
-      return uploadGalleryImage(req, res);
     }
 
     const {
@@ -269,37 +238,10 @@ const updateGalleryItem = async (req, res) => {
       update.isVisible = Boolean(req.body.isVisible);
     }
 
-    if (req.file) {
-      if (!isCloudinaryConfigured()) {
-        return res.status(500).json({
-          success: false,
-          message: "Image storage is not configured",
-        });
-      }
-
-      if (!req.file.mimetype || !req.file.mimetype.startsWith("image/")) {
-        return res.status(400).json({
-          success: false,
-          message: "Only image files are allowed",
-        });
-      }
-
-      const uploaded = await uploadBufferToCloudinary(req.file.buffer, {
-        folder: "galleries",
-        resourceType: "image",
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-      });
-
-      update.imageUrl = uploaded.secureUrl;
-      update.publicId = uploaded.publicId;
-      oldPublicId = existingItem.publicId;
-    } else if (typeof req.body.imageUrl === "string" && req.body.imageUrl.trim()) {
+    if (typeof req.body.imageUrl === "string" && req.body.imageUrl.trim()) {
       update.imageUrl = req.body.imageUrl.trim();
-      if (req.body.publicId) {
-        oldPublicId = existingItem.publicId;
-        update.publicId = req.body.publicId.trim();
-      }
+      update.publicId = (req.body.publicId || "").trim();
+      oldPublicId = existingItem.publicId;
     }
 
     const item = await GalleryItem.findByIdAndUpdate(id, update, { new: true }).lean();
@@ -399,6 +341,43 @@ const getSingleGalleryItem = async (req, res) => {
   }
 };
 
+const getUploadSignature = async (req, res) => {
+  try {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.cloudinary_cloud_name;
+    const apiKey = process.env.CLOUDINARY_API_KEY || process.env.cloudinary_api_key;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.cloudinary_api_secret;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return res.status(500).json({
+        success: false,
+        message: "Cloudinary is not configured.",
+      });
+    }
+
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = "galleries";
+    const params = { folder, timestamp };
+    const sortedKeys = Object.keys(params).sort();
+    const signatureString = sortedKeys.map((k) => `${k}=${params[k]}`).join("&") + apiSecret;
+    const signature = crypto.createHash("sha1").update(signatureString).digest("hex");
+
+    res.json({
+      success: true,
+      signature,
+      timestamp,
+      apiKey,
+      cloudName,
+      folder,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate upload signature.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getGalleryItems,
   createGalleryItem,
@@ -407,4 +386,5 @@ module.exports = {
   uploadGalleryImage,
   getSingleGalleryItem,
   requireAdmin,
+  getUploadSignature,
 };
