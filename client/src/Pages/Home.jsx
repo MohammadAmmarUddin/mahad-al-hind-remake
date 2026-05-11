@@ -1,103 +1,42 @@
-import { useEffect, useState } from "react";
-import useAuthContext from "../hooks/useAuthContext";
 import "swiper/css";
 import "swiper/css/pagination";
 import { Link } from "react-router-dom";
-import BreakingNews from "../Components/Breakingnews.jsx";
 import { motion } from "framer-motion";
-import StudentReview from "../Components/StudentReview";
-import StudentGallery from "../Components/StudentGallery";
-import PagriGallery from "../Components/PagriGallery";
+import useAuthContext from "../hooks/useAuthContext";
+import BreakingNews from "../Components/Breakingnews.jsx";
 import UpdateBanner from "../Components/UpdateBanner.jsx";
 import VideoSection from "../Components/VideoSection.jsx";
+import PublicGallery from "../Components/PublicGallery";
 import { useSiteContent } from "../context/SiteContentContext";
-
-const baseUrl = import.meta.env.VITE_MAHAD_baseUrl || "";
-
-const defaultSections = {
-  hero: false,
-  breakingNews: false,
-  statsBanner: false,
-  videos: false,
-  studentGallery: false,
-  pagriGallery: false,
-};
+import {
+  defaultHomeSections,
+  readLocalJson,
+  HOME_SECTIONS_STORAGE_KEY,
+} from "../config/localContent";
 
 const Home = () => {
   const { user } = useAuthContext();
-  const [sections, setSections] = useState(defaultSections);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const { translate } = useSiteContent();
-  // const [courses, setCourses] = useState([]);
-  // const [error, setError] = useState(null);
-  // const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
-
-  // useEffect(() => {
-  //   const fetchTopCourses = async () => {
-  //     try {
-  //       const response = await fetch(`${baseUrl}/api/course/topCourses`);
-  //       if (!response.ok) {
-  //         throw new Error("Failed to fetch top courses");
-  //       }
-  //       const data = await response.json();
-  //       setCourses(data.data);
-
-  //     } catch (err) {
-  //       setError(err.message);
-  //     }
-  //   };
-
-  //   fetchTopCourses();
-  // }, []);
-
-  useEffect(() => {
-    const loadSections = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/api/site-settings/home-page`);
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error("Failed to load homepage settings");
-        }
-
-        setSections({
-          ...defaultSections,
-          ...(result.data?.homeSections || {}),
-        });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setSettingsLoaded(true);
-      }
-    };
-
-    loadSections();
-  }, []);
-
-  if (!settingsLoaded) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-gray-500">
-        {translate("home", "loading")}
-      </div>
-    );
-  }
+  const sections = readLocalJson(
+    HOME_SECTIONS_STORAGE_KEY,
+    defaultHomeSections,
+  );
 
   return (
     <div>
-      {/* Centered container for normal content */}
-      <div className="lg:w-3/4 w-11/12 mx-auto">
+      <div className="mx-auto w-11/12 lg:w-3/4">
         {sections.breakingNews && <BreakingNews />}
 
         {sections.hero && (
-          <div className="lg:grid lg:grid-cols-2 flex flex-col-reverse gap-5 items-center py-10">
+          <div className="flex flex-col-reverse items-center gap-5 py-10 lg:grid lg:grid-cols-2">
             <div>
-              <h3 className="text-2xl md:text-4xl lg:text-5xl font-bold text-emerald-800 leading-snug">
+              <h3 className="text-2xl font-bold leading-snug text-emerald-800 md:text-4xl lg:text-5xl">
                 {translate("home", "heroTitle")}
               </h3>
-              <h3 className="text-xl md:text-3xl lg:text-4xl font-bold text-primary mt-2">
+              <h3 className="mt-2 text-xl font-bold text-primary md:text-3xl lg:text-4xl">
                 {translate("home", "heroSubtitle")}
               </h3>
-              <p className="my-4 text-sm md:text-base lg:text-lg text-gray-700 text-justify">
+              <p className="my-4 text-justify text-sm text-gray-700 md:text-base lg:text-lg">
                 {translate("home", "heroDescription")}
               </p>
               <Link
@@ -109,29 +48,31 @@ const Home = () => {
                     : "/login"
                 }
               >
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-all duration-300 text-sm md:text-base">
+                <button className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-emerald-700 md:text-base">
                   {translate("home", "heroCta")}
                 </button>
               </Link>
             </div>
 
-            <motion.div className="relative w-full h-full rounded-lg overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="relative h-full w-full overflow-hidden rounded-lg"
+            >
               <img
                 src="/banner.png"
                 alt="Banner"
-                className="relative z-10 rounded-lg shadow-md w-full h-auto"
+                className="relative z-10 h-auto w-full rounded-lg shadow-md"
               />
             </motion.div>
           </div>
         )}
       </div>
 
-      {/* Full width student review */}
       {sections.statsBanner && <UpdateBanner />}
       {sections.videos && <VideoSection />}
-      {/* <StudentReview /> */}
-      {sections.studentGallery && <StudentGallery />}
-      {sections.pagriGallery && <PagriGallery />}
+      {sections.gallery && <PublicGallery />}
     </div>
   );
 };

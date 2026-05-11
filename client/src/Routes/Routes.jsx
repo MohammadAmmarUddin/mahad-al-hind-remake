@@ -27,11 +27,9 @@ import Others from "../Components/Others";
 import CertificateChecker from "../Components/CertificateChecker";
 import CertificateAdd from "../Pages/Dashboard/AdminDashboard/CertificateAdd";
 import AdmissionHelp from "../Components/AdmissionHelp";
-import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos"; // ✅ NEW
+import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos";
 import HomeSectionManager from "../Pages/Dashboard/AdminDashboard/HomeSectionManager";
-import FileUploader from "../Pages/Dashboard/AdminDashboard/FileUploader";
-import ManageStudentGallery from "../Pages/Dashboard/AdminDashboard/ManageStudentGallery";
-import ManageFareginGallery from "../Pages/Dashboard/AdminDashboard/ManageFareginGallery";
+import ManageGallery from "../Pages/Dashboard/AdminDashboard/ManageGallery";
 import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
 
 export const router = createBrowserRouter([
@@ -55,8 +53,6 @@ export const router = createBrowserRouter([
       { path: "/Admission-help", element: <AdmissionHelp /> },
     ],
   },
-
-  // ── Admin Dashboard ──
   {
     path: "/dashboard/admin",
     element: <Dashboard />,
@@ -66,46 +62,21 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/updateCourse/:id", element: <UpdateCourse /> },
       { path: "/dashboard/admin/manageCourses", element: <ManageCourses /> },
       { path: "/dashboard/admin/schedulemeet", element: <ScheduleMeet /> },
-      {
-        path: "/dashboard/admin/transactionHistory",
-        element: <AllTransactions />,
-      },
+      { path: "/dashboard/admin/transactionHistory", element: <AllTransactions /> },
       { path: "/dashboard/admin/allUsers", element: <AllUsers /> },
       { path: "/dashboard/admin/addCertificate", element: <CertificateAdd /> },
-      { path: "/dashboard/admin/manageVideos", element: <ManageVideos /> }, // ✅ NEW
-      {
-        path: "/dashboard/admin/homeSections",
-        element: <HomeSectionManager />,
-      },
-      {
-        path: "/dashboard/admin/fileUploader",
-        element: <FileUploader />,
-      },
-      {
-        path: "/dashboard/admin/studentGallery",
-        element: <ManageStudentGallery />,
-      },
-      {
-        path: "/dashboard/admin/fareginGallery",
-        element: <ManageFareginGallery />,
-      },
-      {
-        path: "/dashboard/admin/enrollmentSettings",
-        element: <EnrollmentSettings />,
-      },
+      { path: "/dashboard/admin/manageVideos", element: <ManageVideos /> },
+      { path: "/dashboard/admin/homeSections", element: <HomeSectionManager /> },
+      { path: "/dashboard/admin/gallery", element: <ManageGallery /> },
+      { path: "/dashboard/admin/enrollmentSettings", element: <EnrollmentSettings /> },
     ],
   },
-
-  // ── User Dashboard ──
   {
     path: "/dashboard/user",
     element: <Dashboard />,
     children: [
       { path: "/dashboard/user/userHome", element: <UserHome /> },
-      {
-        path: "/dashboard/user/userPaymentHistory",
-        element: <PaymentHistory />,
-      },
+      { path: "/dashboard/user/userPaymentHistory", element: <PaymentHistory /> },
       { path: "/dashboard/user/userCourses", element: <MyClasses /> },
       { path: "/dashboard/user/userReview", element: <AddReview /> },
       { path: "/dashboard/user/userCertificate", element: <Certificate /> },

@@ -1,5 +1,6 @@
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
+import { resolveMediaUrl } from "../utils/media";
 
 const StudentReviewCard = ({ item }) => {
     const { name, comment, image, rating } = item;
@@ -8,7 +9,7 @@ const StudentReviewCard = ({ item }) => {
         <div className="max-w-sm mx-auto bg-white rounded-xl shadow-lg overflow-hidden p-6 border border-emerald-100 hover:shadow-2xl transition-all duration-300">
             <div className="flex flex-col items-center">
                 <img
-                    src={image || "/default-profile.png"}
+                    src={resolveMediaUrl(image || "/default-profile.png")}
                     alt="Profile"
                     className="w-24 h-24 rounded-full object-cover border-4 border-emerald-500 mb-4"
                 />

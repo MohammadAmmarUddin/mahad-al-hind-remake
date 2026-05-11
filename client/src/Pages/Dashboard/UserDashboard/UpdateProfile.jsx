@@ -1,15 +1,18 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import useAuthContext from "../../../hooks/useAuthContext";
-import { storage } from '../../../firebase/firebase'; // Firebase import
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import { API } from "../../../config/api";
+import { fileToDataUrl, validateFile } from "../../../utils/uploadMedia";
+import { resolveMediaUrl } from "../../../utils/media";
+import { startTransition } from "react";
 
 const UpdateProfile = () => {
   const { user } = useAuthContext();
   const [loading, setLoading] = useState(false); // State for loader visibility
   const [uploadPerc, setUploadPerc] = useState(0); // Upload percentage for image
   const [selectedImage, setSelectedImage] = useState(null); // State to handle image selection
+  const [preview, setPreview] = useState("");
   const navigate = useNavigate();
 
   const [userData, setUserData] = useState({
@@ -25,11 +28,10 @@ const UpdateProfile = () => {
     location: "",
     img: "",
   });
-  const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
   // Fetch user data by ID
   useEffect(() => {
     axios
-      .get(`${baseUrl}/api/user/singleUser/${user?.user?._id}`, {
+      .get(`${API}/api/user/singleUser/${user?.user?._id}`, {
         withCredentials: true,
       })
       .then((response) => {
@@ -42,7 +44,9 @@ const UpdateProfile = () => {
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      setPreview(URL.createObjectURL(file));
     }
   };
 
@@ -76,45 +80,33 @@ const UpdateProfile = () => {
     };
 
     try {
-      // If an image is selected, upload to Firebase first
-      if (selectedImage) {
-        const imgName = `${new Date().getTime()}_${selectedImage.name}`;
-        const storageRef = ref(storage, `images/${imgName}`);
-        const uploadTask = uploadBytesResumable(storageRef, selectedImage);
+      let imgPayload = userData.img || "";
 
-        // Listen for state changes during upload
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadPerc(Math.round(progress));
-          },
-          (error) => {
-            console.error("Error uploading image: ", error);
-          },
-          async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            updatedData.img = downloadURL; // Update image URL
-            await axios.patch(
-              `${baseUrl}/api/user/updateUser/${user?.user?._id}`,
-              updatedData,
-              { withCredentials: true }
-            );
-            setLoading(false);
-            navigate("/profile");
-          }
-        );
-      } else {
-        await axios.patch(
-          `${baseUrl}/api/user/updateUser/${user?.user?._id}`,
-          updatedData,
-          { withCredentials: true }
-        );
-        setLoading(false);
-        navigate("/profile");
+      if (selectedImage) {
+        validateFile(selectedImage, {
+          allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+          maxSize: 5 * 1024 * 1024,
+        });
+        imgPayload = await fileToDataUrl(selectedImage);
       }
+
+      updatedData.img = imgPayload;
+
+      await axios.patch(`${API}/api/user/updateUser/${user?.user?._id}`, updatedData, {
+        withCredentials: true,
+        onUploadProgress: (event) => {
+          if (event.total) {
+            setUploadPerc(Math.round((event.loaded * 100) / event.total));
+          }
+        },
+      });
+      setLoading(false);
+      startTransition(() => {
+        navigate("/profile");
+      });
     } catch (error) {
       console.error("There was an error updating the profile!", error);
+      setLoading(false);
     }
   };
 
@@ -186,6 +178,11 @@ const UpdateProfile = () => {
               <span className="label-text">Photo</span>
             </label>
             <input type="file" accept="image/*" className="file-input w-full border border-slate-200" onChange={handleImageChange} />
+            {preview ? (
+              <img src={preview} alt="Selected preview" className="mt-3 h-28 w-28 rounded-full object-cover" />
+            ) : userData.img ? (
+              <img src={resolveMediaUrl(userData.img)} alt="Current profile" className="mt-3 h-28 w-28 rounded-full object-cover" />
+            ) : null}
             {/* <p>{uploadPerc}% uploaded</p> */}
           </div>
         </div>

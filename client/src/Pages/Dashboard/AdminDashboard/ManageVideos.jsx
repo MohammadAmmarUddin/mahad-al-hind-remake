@@ -10,8 +10,7 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { MdVideoLibrary, MdClose, MdRefresh } from "react-icons/md";
-
-const BASE_URL = import.meta.env.VITE_MAHAD_baseUrl || "";
+import { API } from "../../../config/api";
 
 const toEmbedUrl = (url) => {
   try {
@@ -92,7 +91,7 @@ const ManageVideos = () => {
     setFetchError("");
 
     try {
-      const res = await fetch(`${BASE_URL}/api/videos`);
+      const res = await fetch(`${API}/api/videos`);
       if (!res.ok) throw new Error();
 
       const data = await res.json();
@@ -139,7 +138,7 @@ const ManageVideos = () => {
     try {
       setSubmitting(true);
 
-      const res = await fetch(`${BASE_URL}/api/videos`, {
+      const res = await fetch(`${API}/api/videos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, tag, desc, embedUrl }),
@@ -186,7 +185,7 @@ const ManageVideos = () => {
     setDeleting(id);
 
     try {
-      const res = await fetch(`${BASE_URL}/api/videos/${id}`, {
+      const res = await fetch(`${API}/api/videos/${id}`, {
         method: "DELETE",
       });
 

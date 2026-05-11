@@ -1,39 +1,56 @@
 import axios from "axios";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthContext from "./useAuthContext";
+import { API_BASE } from "../config/api";
+import { startTransition } from "react";
+import { getStoredAuthToken } from "../utils/authToken";
 
 const axiosSecure = axios.create({
-  baseURL: import.meta.env.VITE_MAHAD_baseUrl;
-})
+  baseURL: API_BASE,
+});
 const useAxiosSecure = () => {
   const navigate = useNavigate();
-  const { logOut } = useAuthContext()
+  const { dispatch } = useAuthContext();
 
+  useEffect(() => {
+    const requestInterceptor = axiosSecure.interceptors.request.use(
+      (config) => {
+        const token = getStoredAuthToken();
+        config.headers = config.headers || {};
+        if (token) {
+          config.headers.authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error),
+    );
 
-  axios.interceptors.request.use(function (config) {
-    // Do something before request is sent
-    const token = localStorage.getItem("access-token")
-    config.headers.authorization = `Bearer ${token}`;
-    return config;
-  }, function (error) {
-    // Do something with request error
-    return Promise.reject(error);
-  });
+    const responseInterceptor = axiosSecure.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const status = error?.response?.status;
 
-  axios.interceptors.response.use(function (response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
-    return response;
-  }, async (error) => {
-    const status = error.response.status;
+        if (status === 401 || status === 403) {
+          localStorage.removeItem("user");
+          localStorage.removeItem("access-token");
+          dispatch({ type: "LOGOUT" });
+          startTransition(() => {
+            navigate("/login");
+          });
+        }
 
-    if (status === 401 || status === 403) {
-      await logOut();
-      navigate("/login");
-    }
-  }
-  )
-  return axiosSecure
+        return Promise.reject(error);
+      },
+    );
+
+    return () => {
+      axiosSecure.interceptors.request.eject(requestInterceptor);
+      axiosSecure.interceptors.response.eject(responseInterceptor);
+    };
+  }, [dispatch, navigate]);
+
+  return axiosSecure;
 };
 
 export default useAxiosSecure;

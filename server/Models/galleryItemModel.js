@@ -4,8 +4,8 @@ const galleryItemSchema = new mongoose.Schema(
   {
     galleryType: {
       type: String,
-      enum: ["student", "faregin"],
-      required: true,
+      enum: ["student", "faregin", "general"],
+      default: "general",
       index: true,
     },
     name: {
@@ -13,9 +13,24 @@ const galleryItemSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    title: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     imageUrl: {
       type: String,
       required: true,
+      trim: true,
+    },
+    publicId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    resourceType: {
+      type: String,
+      default: "image",
       trim: true,
     },
     sortOrder: {
@@ -26,6 +41,10 @@ const galleryItemSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
       index: true,
+    },
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "userCollection",
     },
   },
   { timestamps: true },

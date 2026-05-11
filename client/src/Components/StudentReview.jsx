@@ -10,14 +10,13 @@ import { Navigation, Autoplay } from "swiper/modules";
 import TestimonialCard from "./StudentReviewCard.jsx";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { API } from "../config/api";
 
 const StudentReview = () => {
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
-
   const { data: datas = [] } = useQuery({
     queryKey: ["student-reviews"],
     queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/api/review`);
+      const res = await axios.get(`${API}/api/review`);
       return res.data;
     },
     retry: 5,

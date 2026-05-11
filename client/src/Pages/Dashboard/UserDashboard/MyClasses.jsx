@@ -7,6 +7,8 @@ import useAuthContext from "../../../hooks/useAuthContext";
 import { BsThreeDots } from "react-icons/bs";
 import { MdEdit } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import { API } from "../../../config/api";
+import { resolveMediaUrl } from "../../../utils/media";
 
 const MyClasses = () => {
   const categories = ["My Classes", "Explore", "Incoming", "Course Details"];
@@ -17,7 +19,7 @@ const MyClasses = () => {
   const initialIndex = categories.indexOf(category);
   const [tabIndex, setTabIndex] = useState(initialIndex + 1);
   const [visibleDropdown, setVisibleDropdown] = useState(null);
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+  const baseUrl = API;
   const fetchCourses = () => {
     setLoading(true); // Set loading to true before the request
     const url = `${baseUrl}/api/course/getAllEnrolledCourse/${user?.user?._id}`;
@@ -59,7 +61,7 @@ const MyClasses = () => {
               <div className="">
                 <img
                   className="w-full object-cover rounded-xl"
-                  src={course?.banner}
+                  src={resolveMediaUrl(course?.banner)}
                   alt={course?.title}
                 />
               </div>

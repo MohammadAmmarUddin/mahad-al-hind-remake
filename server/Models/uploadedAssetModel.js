@@ -2,11 +2,53 @@ const mongoose = require("mongoose");
 
 const uploadedAssetSchema = new mongoose.Schema(
   {
-    filename: {
+    image: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    secureUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    publicId: {
       type: String,
       required: true,
       unique: true,
       trim: true,
+    },
+    folder: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    resourceType: {
+      type: String,
+      default: "image",
+      trim: true,
+    },
+    assetId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    format: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    bytes: {
+      type: Number,
+      default: 0,
+    },
+    width: {
+      type: Number,
+      default: 0,
+    },
+    height: {
+      type: Number,
+      default: 0,
     },
     originalName: {
       type: String,
@@ -18,13 +60,9 @@ const uploadedAssetSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
-    size: {
-      type: Number,
-      default: 0,
-    },
-    url: {
+    source: {
       type: String,
-      required: true,
+      default: "cloudinary",
       trim: true,
     },
   },

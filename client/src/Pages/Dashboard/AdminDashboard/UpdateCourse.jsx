@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import JoditEditor from "jodit-react";
 import { RxCross2 } from "react-icons/rx";
-import { storage } from "../../../firebase/firebase";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import useAuthContext from "../../../hooks/useAuthContext";
+import { API } from "../../../config/api";
+import { uploadFilesToBackend, validateFile } from "../../../utils/uploadMedia";
+import { resolveMediaUrl } from "../../../utils/media";
+import { startTransition } from "react";
 
 function UpdateCourse() {
   const { id } = useParams();
@@ -27,8 +29,12 @@ function UpdateCourse() {
   const [selectInstructors, setSelectInstructors] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState("");
   const [pdfFile, setPdfFile] = useState(null);
   const [selectedVideos, setSelectedVideos] = useState([]);
+  const [videoInputType, setVideoInputType] = useState("file");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeTitle, setYoutubeTitle] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +43,7 @@ function UpdateCourse() {
   const [totalFiles, setTotalFiles] = useState(0);
   const [error, setError] = useState("");
   const [quizzes, setQuizzes] = useState([]);
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+  const baseUrl = API;
   // Fetch course data
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -125,13 +131,29 @@ function UpdateCourse() {
     );
   };
 
-  const handleAddVideo = (e) => {
+  const handleAddVideoFile = (e) => {
     const videoFile = e.target.files[0];
     if (videoFile) {
       setSelectedVideos([
         ...selectedVideos,
-        { videoTitle: videoFile.name, videoFile },
+        { videoTitle: videoFile.name, videoFile, resourceType: "video" },
       ]);
+    }
+  };
+
+  const handleAddYoutubeVideo = () => {
+    if (youtubeUrl.trim() && youtubeTitle.trim()) {
+      setSelectedVideos([
+        ...selectedVideos,
+        {
+          videoTitle: youtubeTitle.trim(),
+          videoLink: youtubeUrl.trim(),
+          resourceType: "youtube",
+          publicId: "",
+        },
+      ]);
+      setYoutubeUrl("");
+      setYoutubeTitle("");
     }
   };
 
@@ -162,29 +184,34 @@ function UpdateCourse() {
     ]);
   };
 
-  // Upload file to Firebase Storage
-  const uploadFileToFirebase = (file, folder) => {
-    return new Promise((resolve, reject) => {
-      const fileName = `${new Date().getTime()}_${file.name}`;
-      const storageRef = ref(storage, `${folder}/${fileName}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => reject(error),
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setCompletedUploads((prev) => prev + 1);
-          setUploadProgress(0); // Reset progress for next file
-          resolve(downloadURL);
-        }
-      );
+  const uploadFileToCloudinary = async (file, folder, resourceType = "image") => {
+    validateFile(file, {
+      allowedTypes:
+        resourceType === "video"
+          ? ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"]
+          : resourceType === "raw"
+            ? ["application/pdf"]
+            : ["image/jpeg", "image/png", "image/webp", "image/gif"],
+      maxSize:
+        resourceType === "video"
+          ? 250 * 1024 * 1024
+          : resourceType === "raw"
+            ? 20 * 1024 * 1024
+            : 10 * 1024 * 1024,
     });
+
+    const result = await uploadFilesToBackend({
+      files: [file],
+      folder,
+      resourceType,
+      onProgress: (progress) => {
+        setUploadProgress(progress);
+      },
+    });
+
+    setCompletedUploads((prev) => prev + 1);
+    setUploadProgress(0);
+    return Array.isArray(result) ? result[0] : result;
   };
 
   // Handle form submission
@@ -193,8 +220,9 @@ function UpdateCourse() {
     setLoading(true);
     setError("");
 
+    const fileVideos = selectedVideos.filter((v) => v.videoFile);
     const total =
-      selectedVideos.filter((v) => v.videoFile).length +
+      fileVideos.length +
       (bannerFile ? 1 : 0) +
       (pdfFile ? 1 : 0);
     setTotalFiles(total);
@@ -203,24 +231,51 @@ function UpdateCourse() {
 
     try {
       let bannerURL = "";
+      let bannerPublicId = "";
       let pdfURL = "";
+      let syllabusPublicId = "";
       const videoURLs = [];
 
       if (bannerFile) {
-        bannerURL = await uploadFileToFirebase(bannerFile, "images");
+        const bannerAsset = await uploadFileToCloudinary(
+          bannerFile,
+          "admin/courses/banner",
+          "image"
+        );
+        bannerURL = bannerAsset?.secureUrl || bannerAsset?.image || "";
+        bannerPublicId = bannerAsset?.publicId || "";
       }
 
       if (pdfFile) {
-        pdfURL = await uploadFileToFirebase(pdfFile, "pdfs");
+        const pdfAsset = await uploadFileToCloudinary(
+          pdfFile,
+          "admin/courses/syllabus",
+          "raw"
+        );
+        pdfURL = pdfAsset?.secureUrl || pdfAsset?.image || "";
+        syllabusPublicId = pdfAsset?.publicId || "";
       }
 
       for (const video of selectedVideos) {
-        if (video.videoFile) {
-          const videoURL = await uploadFileToFirebase(
+        if (video.resourceType === "youtube") {
+          videoURLs.push({
+            videoTitle: video.videoTitle,
+            videoLink: video.videoLink,
+            publicId: "",
+            resourceType: "youtube",
+          });
+        } else if (video.videoFile) {
+          const videoAsset = await uploadFileToCloudinary(
             video.videoFile,
-            "videos"
+            "admin/courses/videos",
+            "video"
           );
-          videoURLs.push({ videoTitle: video.videoTitle, videoLink: videoURL });
+          videoURLs.push({
+            videoTitle: video.videoTitle,
+            videoLink: videoAsset?.secureUrl || videoAsset?.image || "",
+            publicId: videoAsset?.publicId || "",
+            resourceType: videoAsset?.resourceType || "video",
+          });
         } else {
           videoURLs.push(video);
         }
@@ -235,10 +290,12 @@ function UpdateCourse() {
         whatsappGroupLink,
         instructorsId: selectedInstructors.map((inst) => inst._id),
         ...(bannerURL && { banner: bannerURL }),
+        ...(bannerPublicId && { bannerPublicId }),
         ...(videoURLs.length > 0 && { videos: videoURLs }),
         category,
         subCategory,
         ...(pdfURL && { syllabus: pdfURL }),
+        ...(syllabusPublicId && { syllabusPublicId }),
         keywords: selectedKeywords,
         price,
         discount,
@@ -260,7 +317,9 @@ function UpdateCourse() {
       if (response.ok) {
         const data = await response.json();
         console.log("Course updated successfully:", data);
-        navigate(`/singleCourse/${id}`);
+        startTransition(() => {
+          navigate(`/singleCourse/${id}`);
+        });
       } else {
         throw new Error(await response.text());
       }
@@ -439,10 +498,21 @@ function UpdateCourse() {
               </label>
               <input
                 type="file"
-                onChange={(e) => setBannerFile(e.target.files[0])}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setBannerFile(file || null);
+                  setBannerPreview(file ? URL.createObjectURL(file) : "");
+                }}
                 accept="image/*"
                 className="file-input w-full file-input-bordered"
               />
+              {bannerPreview && (
+                <img
+                  src={bannerPreview}
+                  alt="Banner preview"
+                  className="mt-3 h-40 w-full rounded-xl object-cover"
+                />
+              )}
             </div>
 
             <div className="form-control w-full">
@@ -460,21 +530,68 @@ function UpdateCourse() {
 
           <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
             <div className="grid grid-cols-4 gap-3">
-              <div className="form-control col-span-3 w-full">
+              <div className="form-control col-span-4 w-full">
                 <label className="label">
                   <span className="label-text">Videos</span>
                 </label>
-                <input
-                  type="file"
-                  onChange={handleAddVideo}
-                  accept="video/*"
-                  className="file-input w-full file-input-bordered"
-                />
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setVideoInputType("file")}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      videoInputType === "file"
+                        ? "bg-primary text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoInputType("youtube")}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      videoInputType === "youtube"
+                        ? "bg-primary text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}
+                  >
+                    YouTube Link
+                  </button>
+                </div>
+                {videoInputType === "file" ? (
+                  <input
+                    type="file"
+                    onChange={handleAddVideoFile}
+                    accept="video/*"
+                    className="file-input w-full file-input-bordered"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={youtubeTitle}
+                      onChange={(e) => setYoutubeTitle(e.target.value)}
+                      placeholder="Video Title"
+                      className="w-full px-3 py-[11px] rounded-md border border-slate-200"
+                    />
+                    <input
+                      type="url"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      placeholder="YouTube URL (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...)"
+                      className="w-full px-3 py-[11px] rounded-md border border-slate-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddYoutubeVideo}
+                      disabled={!youtubeUrl.trim() || !youtubeTitle.trim()}
+                      className="px-4 py-2 rounded-md bg-primary text-white text-sm font-medium disabled:opacity-50"
+                    >
+                      Add YouTube Video
+                    </button>
+                  </div>
+                )}
               </div>
-
-              <p className="border h-fit text-center rounded-md py-[11px] cursor-pointer bg-slate-200 mt-9">
-                Add Video
-              </p>
 
               <div className="border mt-3 h-44 col-span-4 overflow-y-scroll rounded-md p-3">
                 <p className="text-center pb-3">Your selected videos</p>
@@ -483,15 +600,17 @@ function UpdateCourse() {
                     key={index}
                     className="flex justify-between items-center gap-5 bg-slate-200 p-2 rounded-md mb-2"
                   >
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center">
                       <p>{index + 1}.</p>
+                      {video.resourceType === "youtube" && (
+                        <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium">YT</span>
+                      )}
                       <p>
-                        {video.videoTitle.slice(0, 12)}.......
-                        {video.videoTitle.slice(-8)}
+                        {video.videoTitle.slice(0, 18)}...
                       </p>
                     </div>
                     <RxCross2
-                      className="text-red-600 cursor-pointer"
+                      className="text-red-600 cursor-pointer shrink-0"
                       onClick={() =>
                         setSelectedVideos(
                           selectedVideos.filter((_, i) => i !== index)
@@ -534,7 +653,7 @@ function UpdateCourse() {
                         <div className="flex gap-3 items-center">
                           <div className="avatar">
                             <div className="w-10 h-10 border rounded-md object-cover">
-                              <img src={instructor.img} alt={instructor.img} />
+                              <img src={resolveMediaUrl(instructor.img)} alt={instructor.img} />
                             </div>
                           </div>
                           <div>

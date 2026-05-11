@@ -13,9 +13,9 @@ router.post("/createCertificate", createCertificate);
 
 router.get("/", getAllCertificates);
 
-router.get("/:id", getCertificateById);
-
 router.get("/check/:certificateId", checkCertificate);
+
+router.get("/:id", getCertificateById);
 
 router.delete("/:id", deleteCertificate);
 

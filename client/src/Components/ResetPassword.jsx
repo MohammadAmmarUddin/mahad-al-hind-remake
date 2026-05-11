@@ -3,18 +3,19 @@ import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 import Swal from "sweetalert2";
+import { API } from "../config/api";
+import { startTransition } from "react";
 
 const ResetPassword = () => {
     const navigate = useNavigate();
     const {token} = useParams();
-    const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
     const handleSubmit = (e) => {
       e.preventDefault();
       const form = e.target;
       const password = form.password.value;
       axios
         .post(
-          `${baseUrl}/api/user/resetPassword/`+token,
+          `${API}/api/user/resetPassword/`+token,
           { password },
           { withCredential: true }
         )
@@ -30,7 +31,9 @@ const ResetPassword = () => {
           if (res.data.status) {
 
             console.log("successfully Updated Password");
-            navigate("/login");
+            startTransition(() => {
+              navigate("/login");
+            });
           }
         });
     };

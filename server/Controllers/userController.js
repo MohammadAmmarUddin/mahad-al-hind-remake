@@ -1,8 +1,14 @@
 const mongoose = require("mongoose");
 const userModel = require("../Models/userModel.js");
+const { createNotification } = require("../Controllers/notificationController");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
+const {
+  destroyCloudinaryAsset,
+  normalizeUploadInput,
+  uploadToCloudinary,
+} = require("../Utils/cloudinary");
 
 const DeviceDetector = require("device-detector-js");
 const deviceDetector = new DeviceDetector();
@@ -40,11 +46,55 @@ const sendWelcomeEmail = (userEmail, userName) => {
   });
 };
 
-const createToken = (_id) => {
-  console.log(process.env.ACCESS_TOKEN_SECRET);
-  return jwt.sign({ _id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "3d",
+const createToken = (user) => {
+  return jwt.sign(
+    { _id: user._id, role: user.role },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "3d" }
+  );
+};
+
+const isCloudinaryUrl = (value = "") =>
+  /res\.cloudinary\.com/i.test(String(value || ""));
+
+const persistProfileImage = async (image, previousPublicId = "") => {
+  const normalized = normalizeUploadInput(image, {
+    mimeType: "image/jpeg",
   });
+
+  if (!normalized) {
+    return {
+      img: image || "",
+      imgPublicId: previousPublicId || "",
+    };
+  }
+
+  if (/^https?:\/\//i.test(normalized) && isCloudinaryUrl(normalized)) {
+    return {
+      img: normalized,
+      imgPublicId: previousPublicId || "",
+    };
+  }
+
+  const uploaded = await uploadToCloudinary(normalized, {
+    folder: "users/profiles",
+    resourceType: "image",
+    originalName: "profile-image",
+    mimeType: "image/jpeg",
+  });
+
+  if (previousPublicId) {
+    try {
+      await destroyCloudinaryAsset(previousPublicId, "image");
+    } catch (error) {
+      console.warn("Failed to delete previous profile image:", error.message);
+    }
+  }
+
+  return {
+    img: uploaded.url,
+    imgPublicId: uploaded.publicId,
+  };
 };
 
 const signupUser = async (req, res) => {
@@ -62,7 +112,7 @@ const signupUser = async (req, res) => {
       img,
       password
     );
-    const token = createToken(user._id);
+    const token = createToken(user);
     res.status(200).json({ user, token });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -257,7 +307,7 @@ const forgetPassword = async (req, res) => {
     from: "ammaraslam7164@gmail.com",
     to: email,
     subject: "Sending Email for reset password",
-    text: `http://localhost:5173/resetPassword/${token}`,
+    text: `${process.env.BASE_URL}/resetPassword/${token}`,
   };
 
   transporter.sendMail(mailOptions, function (error, info) {
@@ -412,20 +462,175 @@ const updateLanguagePreference = async (req, res) => {
   }
 };
 
+const signupUserV2 = async (req, res) => {
+  const { firstname, lastname, email, phone, role, prevRole, img, password } =
+    req.body;
+
+  try {
+    const imageResult = await persistProfileImage(img || "", "");
+    const user = await userModel.signup(
+      firstname,
+      lastname,
+      email,
+      phone,
+      role,
+      prevRole,
+      imageResult.img,
+      imageResult.imgPublicId,
+      password,
+    );
+
+    const token = createToken(user._id);
+
+    createNotification({
+      role: "admin",
+      type: "new_signup",
+      message: `New user registered: ${user.firstname} ${user.lastname} (${user.email})`,
+      link: "/dashboard/admin/allUsers",
+      relatedId: String(user._id),
+    });
+
+    res.status(200).json({ user, token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const googleLoginV2 = async (req, res) => {
+  try {
+    const { firstname, lastname, email, phone, role, prevRole, img } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    let user = await userModel.findOne({ email });
+    let isNewUser = false;
+
+    if (!user) {
+      isNewUser = true;
+      const imageResult = await persistProfileImage(img || "", "");
+      user = await userModel.create({
+        firstname,
+        lastname,
+        email,
+        phone,
+        role,
+        prevRole,
+        img: imageResult.img,
+        imgPublicId: imageResult.imgPublicId,
+      });
+    }
+
+    const token = createToken(user._id);
+
+    if (isNewUser) {
+      createNotification({
+        role: "admin",
+        type: "new_signup",
+        message: `New user registered: ${user.firstname} ${user.lastname} (${user.email})`,
+        link: "/dashboard/admin/allUsers",
+        relatedId: String(user._id),
+      });
+    }
+
+    res.status(200).json({
+      user: {
+        ...user.toObject(),
+        isNewUser,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const updateUserV2 = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ error: "Invalid ID" });
+  }
+
+  try {
+    const currentUser = await userModel.findById(id);
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const payload = { ...req.body };
+    const incomingImg = typeof payload.img === "string" ? payload.img.trim() : "";
+
+    if (incomingImg && incomingImg !== currentUser.img) {
+      const imageResult = await persistProfileImage(
+        incomingImg,
+        currentUser.imgPublicId || "",
+      );
+      payload.img = imageResult.img;
+      payload.imgPublicId = imageResult.imgPublicId;
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(id, payload, {
+      new: true,
+    });
+
+    if (updatedUser) {
+      res.status(200).json(updatedUser);
+    } else {
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const changeUserRole = async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ error: "Invalid ID" });
+  }
+
+  const allowedRoles = ["student", "admin", "instructor"];
+  if (!role || !allowedRoles.includes(role)) {
+    return res.status(400).json({ error: `Role must be one of: ${allowedRoles.join(", ")}` });
+  }
+
+  try {
+    const user = await userModel.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
-  signupUser,
+  signupUser: signupUserV2,
   loginUser,
   getAllUsers,
   getSingleUser,
   deleteUser,
-  updateUser,
+  updateUser: updateUserV2,
   makeAdmin,
   undoAdmin,
   forgetPassword,
   resetPassword,
   getAllUsersCount,
   changePassword,
-  googleLogin,
+  googleLogin: googleLoginV2,
   deleteMyAccount,
   updateLanguagePreference,
+  changeUserRole,
 };

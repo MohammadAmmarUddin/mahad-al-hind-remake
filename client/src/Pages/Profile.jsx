@@ -3,15 +3,16 @@ import { MdEdit, MdPerson } from "react-icons/md";
 import { FaMedal } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { API } from "../config/api";
+import { resolveMediaUrl } from "../utils/media";
 
 const Profile = () => {
   const { user } = useAuthContext();
   const [activeTab, setActiveTab] = useState(0);
   const [userData, setUserData] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
   const fetchSingleUser = () => {
-    const url = `${baseUrl}/api/user/singleUser/${user?.user?._id}`;
+    const url = `${API}/api/user/singleUser/${user?.user?._id}`;
     fetch(url)
       .then((res) => res.json())
       .then((data) => setUserData(data))
@@ -19,7 +20,7 @@ const Profile = () => {
   };
 
   const fetchEnrolledCourses = () => {
-    const url = `${baseUrl}/api/course/getAllEnrolledCourse/${user?.user?._id}`;
+    const url = `${API}/api/course/getAllEnrolledCourse/${user?.user?._id}`;
     fetch(url)
       .then((res) => res.json())
       .then((data) => setEnrolledCourses(data.courses))
@@ -49,7 +50,7 @@ const Profile = () => {
         <div className="md:col-span-3 lg:col-span-2 col-span-7">
           <img
             className="h-[400px] rounded-md w-full object-cover object-top border"
-            src={userData.img && userData.img}
+            src={resolveMediaUrl(userData.img && userData.img)}
             alt=""
           />
           <div className="block md:hidden">
@@ -161,7 +162,7 @@ const Profile = () => {
                         className="bg-white border border-gray-200 rounded-lg shadow-md p-4"
                       >
                         <img
-                          src={course.banner}
+                            src={resolveMediaUrl(course.banner)}
                           className="h-32 min-w-full object-cover"
                           alt=""
                         />

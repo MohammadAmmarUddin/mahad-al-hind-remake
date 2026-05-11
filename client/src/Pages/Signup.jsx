@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { useSignup } from "../hooks/useSignup";
 import { FaAngleLeft } from "react-icons/fa6";
 import { useState } from "react";
-import { storage } from "../firebase/firebase"; // Use storage from the initialized firebase file
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import DOMPurify from "dompurify"; // For sanitizing inputs
+import { fileToDataUrl, validateFile } from "../utils/uploadMedia";
 
 const Signup = () => {
   const { signup } = useSignup();
@@ -18,6 +17,7 @@ const Signup = () => {
   } = useForm();
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [preview, setPreview] = useState("");
 
   // Function to sanitize all inputs
   const sanitizeInput = (input) => {
@@ -37,63 +37,33 @@ const Signup = () => {
     const prevRole = role;
 
     try {
-      // Validate if an image file is selected
+      let imgPayload = "";
+
       if (selectedImage) {
-        // Image file validation (limit size, file type)
-        const allowedTypes = ["image/jpeg", "image/png"];
-        if (!allowedTypes.includes(selectedImage.type)) {
-          throw new Error("Invalid file type. Only JPG and PNG are allowed.");
-        }
-
-        const maxSize = 5 * 1024 * 1024; // Limit to 5MB
-        if (selectedImage.size > maxSize) {
-          throw new Error("File is too large. Maximum size is 5MB.");
-        }
-
-        const imgName = `${new Date().getTime()}_${selectedImage.name}`;
-        const storageRef = ref(storage, `images/${imgName}`);
-        const uploadTask = uploadBytesResumable(storageRef, selectedImage);
-
-        // Listen for upload progress, errors, and completion
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadPerc(Math.round(progress));
-          },
-          (error) => {
-            console.error("Error uploading image: ", error);
-          },
-          async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            await signup(
-              sanitizedFirstname,
-              sanitizedLastname,
-              sanitizedEmail,
-              sanitizedPhone,
-              role,
-              prevRole,
-              downloadURL,
-              sanitizedPassword
-            );
-            console.log("Signup successful with image URL:", downloadURL);
-          }
-        );
-      } else {
-        // Proceed without image if none selected
-        await signup(
-          sanitizedFirstname,
-          sanitizedLastname,
-          sanitizedEmail,
-          sanitizedPhone,
-          role,
-          prevRole,
-          "",
-          sanitizedPassword
-        );
-        console.log("Signup successful without image.");
+        validateFile(selectedImage, {
+          allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+          maxSize: 5 * 1024 * 1024,
+        });
+        imgPayload = await fileToDataUrl(selectedImage);
       }
+
+      await signup(
+        sanitizedFirstname,
+        sanitizedLastname,
+        sanitizedEmail,
+        sanitizedPhone,
+        role,
+        prevRole,
+        imgPayload,
+        sanitizedPassword,
+        {
+          onProgress: (event) => {
+            if (event.total) {
+              setUploadPerc(Math.round((event.loaded * 100) / event.total));
+            }
+          },
+        }
+      );
     } catch (error) {
       console.error("Error in signup: ", error);
     }
@@ -101,7 +71,9 @@ const Signup = () => {
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      setPreview(URL.createObjectURL(file));
     }
   };
 
@@ -173,6 +145,13 @@ const Signup = () => {
             className="file-input w-full file-input-bordered"
             onChange={handleImageChange}
           />
+          {preview && (
+            <img
+              src={preview}
+              alt="Selected preview"
+              className="mt-3 h-40 w-40 rounded-xl object-cover"
+            />
+          )}
         </div>
         <div className="form-control pb-4">
           <label className="">Password</label>

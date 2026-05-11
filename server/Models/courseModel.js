@@ -27,12 +27,28 @@ const courseSchema = new mongoose.Schema({
     banner: {
         type: String,
     },
+    bannerPublicId: {
+        type: String,
+        default: "",
+    },
+    syllabusPublicId: {
+        type: String,
+        default: "",
+    },
     videos: [{
         videoTitle: {
             type: String,
         },
         videoLink: {
             type: String,
+        },
+        publicId: {
+            type: String,
+            default: "",
+        },
+        resourceType: {
+            type: String,
+            default: "video",
         },
 
     }],

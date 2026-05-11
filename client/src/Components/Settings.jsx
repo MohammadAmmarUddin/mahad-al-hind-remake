@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import useAuthContext from "../hooks/useAuthContext";
 import { useLogout } from "../hooks/useLogout";
+import { API } from "../config/api";
 const Settings = () => {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(""); // for success messages
@@ -21,11 +22,10 @@ const Settings = () => {
       setError("Password is required.");
       return;
     }
-    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
     try {
       // Send request to delete the account
       const response = await axios.delete(
-        `${baseUrl}/api/user/deleteMyAccount`,
+        `${API}/api/user/deleteMyAccount`,
         {
           data: { password, id },
         }
@@ -69,11 +69,10 @@ const Settings = () => {
       setError("New password and confirmation do not match.");
       return;
     }
-    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
     try {
       // Make API request
       const response = await axios.patch(
-        `${baseUrl}/api/user/changePassword`,
+        `${API}/api/user/changePassword`,
         { oldPassword, newPassword, retypePassword, id }
       );
 

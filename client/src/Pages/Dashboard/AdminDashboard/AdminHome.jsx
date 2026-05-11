@@ -8,6 +8,7 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { TbCurrencyTaka } from "react-icons/tb";
+import { API } from "../../../config/api";
 
 const AdminDashboard = () => {
   // State variables for storing various counts and data
@@ -20,10 +21,9 @@ const AdminDashboard = () => {
   const [avgCourseCompleteTime, setAvgCourseCompleteTime] = useState([]);
   const [completedCoursesCount, setCompletedCoursesCount] = useState(0);
 
-  const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
   // Fetching the total number of users
   const fetchCountUsers = () => {
-    fetch(`${baseUrl}/api/user/allUsersCount`)
+    fetch(`${API}/api/user/allUsersCount`)
       .then((res) => res.json())
       .then((data) => setCountUsers(data))
       .catch((error) => console.log(error));
@@ -35,7 +35,7 @@ const AdminDashboard = () => {
 
   // Fetching the total number of courses
   const fetchCourseCount = () => {
-    fetch(`${baseUrl}/api/course/getCourseCount`)
+    fetch(`${API}/api/course/getCourseCount`)
       .then((res) => res.json())
       .then((data) => setCourseCount(data))
       .catch((error) => console.log(error));
@@ -47,7 +47,7 @@ const AdminDashboard = () => {
 
   // Fetching the total number of enrolled users
   const fetchEnrolledUsers = () => {
-    fetch(`${baseUrl}/api/course/enrolledUsersCourses`)
+    fetch(`${API}/api/course/enrolledUsersCourses`)
       .then((res) => res.json())
       .then((data) => setEnrolledUsers(data))
       .catch((error) => console.log(error));
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
 
   // Fetching total revenue
   const fetchTotalRevenue = () => {
-    fetch(`${baseUrl}/api/course/getTotalPayment`)
+    fetch(`${API}/api/course/getTotalPayment`)
       .then((res) => res.json())
       .then((data) => setTotalRevenue(data.totalPayment))
       .catch((error) => console.log(error));
@@ -73,7 +73,7 @@ const AdminDashboard = () => {
 
   // Fetching course categories and their counts
   const fetchCourseCategories = () => {
-    fetch(`${baseUrl}/api/course/getCourseCategories`)
+    fetch(`${API}/api/course/getCourseCategories`)
       .then((res) => res.json())
       .then((data) => setCoursesCategories(data.categories))
       .catch((error) => console.log(error));
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
 
   // Fetching the total average rating
   const fetchTotalAverageRating = () => {
-    fetch(`${baseUrl}/api/course/getAvgRating`)
+    fetch(`${API}/api/course/getAvgRating`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Total average rating:", data.avgRating); // Debugging the fetched data
@@ -100,7 +100,7 @@ const AdminDashboard = () => {
 
   // Fetching the completed courses count
   const fetchCompletedCoursesCount = () => {
-    fetch(`${baseUrl}/api/course/getCompletedCoursesCount`)
+    fetch(`${API}/api/course/getCompletedCoursesCount`)
       .then((res) => res.json())
       .then((data) => {
         setCompletedCoursesCount(data.totalCompletedCourses); // Set the completed courses count
@@ -114,7 +114,7 @@ const AdminDashboard = () => {
 
   // Fetching the completed courses count
   const fetchAvgCompletedCourseTime = () => {
-    fetch(`${baseUrl}/api/course/getAverageCompletionTime`)
+    fetch(`${API}/api/course/getAverageCompletionTime`)
       .then((res) => res.json())
       .then((data) => {
         setAvgCourseCompleteTime(data.averageCompletionTimeInDays); // Set the completed courses count

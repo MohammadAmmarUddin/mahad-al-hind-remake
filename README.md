@@ -120,7 +120,13 @@ NODE_ENV=development
 ### Client (`client/.env`)
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+VITE_MAHAD_baseUrl=https://your-backend.example.com
+VITE_IMAGE_HOSTING_KEY=your-client-image-key-if-needed
+
+# backend
+cloudinary_cloud_name=your_cloud_name
+cloudinary_api_key=your_api_key
+cloudinary_api_secret=your_api_secret
 ```
 
 ⚠️ Never commit `.env` files.

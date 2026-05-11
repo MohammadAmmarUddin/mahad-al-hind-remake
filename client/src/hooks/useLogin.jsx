@@ -2,6 +2,8 @@ import { useState } from "react";
 import useAuth from "./useAuthContext";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { apiPath, safeFetchJson } from "../config/api";
+import { startTransition } from "react";
 
 export const useLogin = () => {
   const [error, setError] = useState(null);
@@ -12,32 +14,35 @@ export const useLogin = () => {
   const login = async (email, password) => {
     setError(null);
     setIsLoading(true);
-    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
     try {
-      const response = await fetch(`${baseUrl}/api/user/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const json = await response.json();
-      console.log("Response from server:", json);
+      const json = await safeFetchJson(
+        apiPath("/api/user/login"),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+        null,
+      );
 
-      if (!response.ok) {
-        setError(json.error || "An error occurred during login.");
+      if (!json) {
+        setError("Backend is unavailable. Please try again later.");
         Swal.fire({
           position: "center",
           icon: "error",
-          title: json.error || "Something went wrong. Please try again later.",
+          title: "Backend is unavailable. Please try again later.",
           showConfirmButton: true,
         });
         return null;
       }
 
       localStorage.setItem("user", JSON.stringify(json));
+      if (json?.token) {
+        localStorage.setItem("access-token", json.token);
+      }
       dispatch({ type: "LOGIN", payload: json });
       return json;
     } catch (err) {
-      console.error("Login error:", err);
       setError("Something went wrong. Please try again later.");
       Swal.fire({
         position: "center",
@@ -54,37 +59,43 @@ export const useLogin = () => {
   const googleLogin = async (userData) => {
     setError(null);
     setIsLoading(true);
-    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
     try {
-      const response = await fetch(`${baseUrl}/api/user/googleLogin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
+      const json = await safeFetchJson(
+        apiPath("/api/user/googleLogin"),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
+        },
+        null,
+      );
 
-      const json = await response.json();
-      console.log("Google login response from server:", json);
-
-      if (!response.ok) {
-        throw new Error(json.error || "An error occurred during Google login.");
+      if (!json) {
+        throw new Error("Backend is unavailable. Please try again later.");
       }
 
-      // Store user data and token
       localStorage.setItem("user", JSON.stringify(json));
+      if (json?.token) {
+        localStorage.setItem("access-token", json.token);
+      }
       dispatch({ type: "LOGIN", payload: json });
 
-      // Handle navigation based on role
       if (json?.user?.role === "school-owner") {
-        navigate("/dashboard");
+        startTransition(() => {
+          navigate("/dashboard");
+        });
       } else if (json?.user?.role === "teacher") {
-        navigate("/teacherDashboard");
+        startTransition(() => {
+          navigate("/teacherDashboard");
+        });
       } else {
-        navigate("/");
+        startTransition(() => {
+          navigate("/");
+        });
       }
 
       return true;
     } catch (err) {
-      console.error("Google login error:", err);
       setError(err.message || "Something went wrong with Google login.");
       Swal.fire({
         position: "center",

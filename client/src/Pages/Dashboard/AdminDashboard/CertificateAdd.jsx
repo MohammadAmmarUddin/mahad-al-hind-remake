@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API } from "../../../config/api";
 
 const CertificateAdd = () => {
     const [formData, setFormData] = useState({
@@ -9,7 +10,7 @@ const CertificateAdd = () => {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
-    const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+    const baseUrl = API;
 
     const handleChange = (e) => {
         setFormData((prev) => ({

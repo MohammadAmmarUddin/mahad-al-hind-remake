@@ -1,16 +1,6 @@
 import { useState } from "react";
+import { uploadFilesToBackend, validateFile } from "../utils/uploadMedia";
 
-const API_URL = import.meta.env.VITE_MAHAD_baseUrl || "http://localhost:4000";
-
-/**
- * ImageUpload Component
- * 
- * @param {Object} props
- * @param {function} props.onUploadSuccess - Callback receiving the uploaded image data
- * @param {string} props.label - Button label
- * @param {boolean} props.multiple - Allow multiple uploads
- * @param {string} props.className - Additional CSS classes
- */
 export default function ImageUpload({
   onUploadSuccess,
   label = "Upload Image",
@@ -18,60 +8,57 @@ export default function ImageUpload({
   className = "",
 }) {
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState([]);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
 
   const handleFileChange = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) {
+      return;
+    }
 
     setUploading(true);
     setError(null);
+    setProgress(0);
 
     try {
-      const formData = new FormData();
-      const field = multiple ? "images" : "image";
-      
-      if (multiple) {
-        Array.from(files).forEach((file) => formData.append(field, file));
-      } else {
-        formData.append(field, files[0]);
-      }
-
-      const endpoint = multiple ? "/api/upload/images" : "/api/upload/image";
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: "POST",
-        body: formData,
+      files.forEach((file) => {
+        validateFile(file, {
+          allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"],
+          maxSize: 10 * 1024 * 1024,
+        });
       });
 
-      const result = await response.json();
+      const previewUrls = files.map((file) => ({
+        name: file.name,
+        url: URL.createObjectURL(file),
+      }));
+      setPreview(previewUrls);
 
-      if (!response.ok) {
-        throw new Error(result.message || "Upload failed");
-      }
+      const uploaded = await uploadFilesToBackend({
+        files,
+        folder: "admin/uploads",
+        resourceType: "image",
+        onProgress: setProgress,
+      });
 
-      // Set preview for single image
-      if (!multiple && result.data?.url) {
-        setPreview(`${API_URL}${result.data.url}`);
-      }
-
-      // Call success callback
       if (onUploadSuccess) {
-        onUploadSuccess(result.data);
+        onUploadSuccess(uploaded);
       }
 
-      // Reset file input
       e.target.value = "";
     } catch (err) {
       setError(err.message || "Failed to upload image");
-      console.error("Upload error:", err);
     } finally {
       setUploading(false);
     }
   };
 
   const handleRemove = () => {
-    setPreview(null);
+    setPreview([]);
+    setProgress(0);
     if (onUploadSuccess) {
       onUploadSuccess(null);
     }
@@ -80,7 +67,6 @@ export default function ImageUpload({
   return (
     <div className={`image-upload ${className}`}>
       <div className="flex flex-col gap-3">
-        {/* File Input */}
         <label className="flex items-center gap-3">
           <input
             type="file"
@@ -90,33 +76,45 @@ export default function ImageUpload({
             disabled={uploading}
             className="hidden"
           />
-          <span className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 cursor-pointer transition-colors">
+          <span className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:bg-gray-400">
             {uploading ? "Uploading..." : label}
           </span>
         </label>
 
-        {/* Error Message */}
+        {progress > 0 && (
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+            <div
+              className="h-full bg-emerald-600 transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
+
         {error && (
           <div className="rounded bg-red-50 p-2 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* Preview */}
-        {preview && (
-          <div className="relative inline-block">
-            <img
-              src={preview}
-              alt="Uploaded preview"
-              className="max-w-xs rounded-lg border-2 border-gray-200"
-            />
-            <button
-              onClick={handleRemove}
-              className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700"
-              title="Remove image"
-            >
-              ✕
-            </button>
+        {preview.length > 0 && (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {preview.map((item) => (
+              <div key={item.url} className="relative inline-block">
+                <img
+                  src={item.url}
+                  alt={item.name}
+                  className="h-40 w-full rounded-lg border-2 border-gray-200 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemove}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700"
+                  title="Remove image"
+                >
+                  x
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>

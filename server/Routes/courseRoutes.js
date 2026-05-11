@@ -1,4 +1,6 @@
 const express = require("express");
+const requireAuth = require("../Middleware/requireAuth");
+
 const {
   createCourse,
   getAllCourses,
@@ -10,6 +12,11 @@ const {
   courseCount,
   order,
   success,
+  manualEnroll,
+  approveEnrollment,
+  rejectEnrollment,
+  getPendingEnrollments,
+  getAllEnrollments,
   topCourses,
   unlockVideo,
   completeCourse,
@@ -25,7 +32,6 @@ const {
   fail,
   getTotalPayment,
   getTotalPaymentBySpecificStudent,
-
   getVideosCount,
   getUserCourseProgress,
 } = require("../Controllers/courseController.js");
@@ -38,6 +44,7 @@ router.post("/giveRating/:courseId", giveRating);
 router.post("/payment/order", order);
 router.post("/payment/success/:tran_id/:encodedData", success);
 router.post("/payment/fail/:courseId", fail);
+router.post("/manual-enroll", manualEnroll);
 
 //get
 router.get("/getAllCourses", getAllCourses);
@@ -57,6 +64,12 @@ router.get("/getTotalPayment", getTotalPayment);
 router.get("/getVideosCount/:id", getVideosCount);
 router.get("/getUserCourseProgress/:id", getUserCourseProgress);
 router.get("/getSpentByStudent/:studentId", getTotalPaymentBySpecificStudent);
+
+// Admin enrollment management
+router.patch("/approve-enrollment/:tranId", requireAuth, approveEnrollment);
+router.patch("/reject-enrollment/:tranId", requireAuth, rejectEnrollment);
+router.get("/pending-enrollments", requireAuth, getPendingEnrollments);
+router.get("/all-enrollments", requireAuth, getAllEnrollments);
 
 //delete
 router.delete("/deleteCourse/:id", deleteCourse);

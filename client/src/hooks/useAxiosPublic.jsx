@@ -1,12 +1,11 @@
+import axios from "axios";
+import { API_BASE } from "../config/api";
 
-import axios from "axios"
 const axiosPublic = axios.create({
-  
-    baseURL:  import.meta.env. VITE_MAHAD_baseUrl;
-      
-})
+  baseURL: API_BASE,
+});
 const useAxiosPublic = () => {
-    return axiosPublic
+  return axiosPublic;
 };
 
 export default useAxiosPublic;

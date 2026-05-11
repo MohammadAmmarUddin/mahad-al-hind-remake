@@ -4,11 +4,13 @@ import { MdEdit } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
+import { API } from "../../../config/api";
+import { resolveMediaUrl } from "../../../utils/media";
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
   const [visibleDropdown, setVisibleDropdown] = useState(null); // To track the visible dropdown
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+  const baseUrl = API;
   const fetchCourses = () => {
     const url = `${baseUrl}/api/course/getAllCourses`;
     fetch(url)
@@ -92,7 +94,7 @@ const ManageCourses = () => {
           <div key={course._id} className="border rounded-xl relative ">
             <Link to={`/singleCourse/${course?._id}`}>
               <div className="">
-                <img className="w-full object-cover rounded-xl" src={course?.banner} alt={course?.title} />
+                <img className="w-full object-cover rounded-xl" src={resolveMediaUrl(course?.banner)} alt={course?.title} />
               </div>
             </Link>
             <div className="absolute right-4 top-4 dropdown-container">

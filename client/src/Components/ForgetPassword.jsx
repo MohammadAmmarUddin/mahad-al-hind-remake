@@ -3,10 +3,11 @@ import { FaAngleLeft } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { API } from "../config/api";
+import { startTransition } from "react";
 
 const ForgetPassword = () => {
     const navigate = useNavigate();
-    const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
     const handleSubmit = (e) => {
       e.preventDefault();
   
@@ -16,7 +17,7 @@ const ForgetPassword = () => {
   
       axios
         .post(
-          `${baseUrl}/api/user/forgetPassword`,
+          `${API}/api/user/forgetPassword`,
           { email },
           { withCredential: true }
         )
@@ -30,8 +31,10 @@ const ForgetPassword = () => {
           });
           if (res.data.status) {
             console.log("successfully login");
-          
-            navigate("/login");
+
+            startTransition(() => {
+              navigate("/login");
+            });
           }
         });
     };

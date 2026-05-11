@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import { API } from "../config/api";
 
 const ScheduleMeet = () => {
   const [summary, setSummary] = useState("");
@@ -16,12 +17,11 @@ const ScheduleMeet = () => {
 
   // Extract course ID from URL query parameters
   const id = location.search.slice(1);
-  const baseUrl= import.meta.env. VITE_MAHAD_baseUrl;
   useEffect(() => {
     const fetchSingleCourse = async () => {
       try {
         const { data } = await axios.get(
-          `${baseUrl}/api/course/getSingleCourse/${id}`
+          `${API}/api/course/getSingleCourse/${id}`
         );
         if (data) {
           setStudents(data.students || []);
@@ -46,7 +46,7 @@ const ScheduleMeet = () => {
           students.map(async (student) => {
             try {
               const { data } = await axios.get(
-                `${baseUrl}/api/user/singleUser/${student?.studentsId}`
+                `${API}/api/user/singleUser/${student?.studentsId}`
               );
               return { email: data?.email || "No Email" };
             } catch (err) {
@@ -74,7 +74,7 @@ const ScheduleMeet = () => {
     setLoading(true);
     setError(""); // Reset error before starting
     try {
-      const { data } = await axios.post(`${baseUrl}/api/meet/createMeet`, {
+      const { data } = await axios.post(`${API}/api/meet/createMeet`, {
         summary,
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
@@ -86,7 +86,7 @@ const ScheduleMeet = () => {
 
         // Send schedule only if all required data is present
         if (usersData.length > 0 && courseTitle) {
-          await axios.post(`${baseUrl}/api/meet/sendSchedule`, {
+          await axios.post(`${API}/api/meet/sendSchedule`, {
             usersData,
             meetLink: data.meetLink,
             courseTitle,

@@ -4,12 +4,13 @@ import { useState } from "react";
 import axios from "axios";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
+import { API } from "../../../config/api";
 
 const AddReview = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const { user } = useAuthContext();
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+  const baseUrl = API;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

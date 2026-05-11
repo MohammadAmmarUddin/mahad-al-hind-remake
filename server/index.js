@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const dns = require("dns");
-const path = require("path");
 
 // routes
 const userRoutes = require("./Routes/userRoutes");
@@ -16,10 +15,12 @@ const certificateRoutes = require("./Routes/certificateAuth");
 const whatsappRoutes = require("./Routes/whatsappRoutes");
 const reviewRoutes = require("./Routes/reviewRoutes");
 const videoRoutes = require("./Routes/videoRoutes");
-const uploadRoutes = require("./Routes/uploadRoutes");
+const mediaRoutes = require("./Routes/mediaRoutes");
 const siteSettingsRoutes = require("./Routes/siteSettingsRoutes");
-const galleryRoutes = require("./Routes/galleryRoutes");
+const { legacyRouter: galleryRoutes, unifiedRouter: galleryNewRoutes } =
+  require("./Routes/galleryRoutes");
 const siteContentRoutes = require("./Routes/siteContentRoutes");
+const notificationRoutes = require("./Routes/notificationRoutes");
 
 const app = express();
 
@@ -28,8 +29,8 @@ const PORT = process.env.PORT || 4000;
 const BASE_URL = process.env.BASE_URL;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-console.log("🌐 BASE_URL:", BASE_URL);
-console.log("🔗 Mongo URI Loaded:", !!MONGODB_URI);
+console.log("BASE_URL:", BASE_URL);
+console.log("Mongo URI Loaded:", !!MONGODB_URI);
 
 // Fix DNS (Mongo SRV issue workaround)
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
@@ -49,11 +50,7 @@ app.use(
 // --------------------
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://mahad-al-hind.netlify.app",
-      BASE_URL,
-    ].filter(Boolean),
+    origin: [BASE_URL, "http://localhost:5173"].filter(Boolean),
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   }),
@@ -63,27 +60,16 @@ app.use(
 app.options("*", cors());
 
 // --------------------
-// Static Files (uploads)
-// --------------------
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"), {
-    fallthrough: false,
-    maxAge: "7d",
-  }),
-);
-
-// --------------------
 // Body Parsers
 // --------------------
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 // --------------------
 // Health Check
 // --------------------
 app.get("/", (req, res) => {
-  res.send("🚀 Server is running");
+  res.send("Server is running");
 });
 
 // --------------------
@@ -97,10 +83,12 @@ app.use("/api/certificate", certificateRoutes);
 app.use("/api/review", reviewRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/api/media", mediaRoutes);
 app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api/galleries", galleryRoutes);
+app.use("/api/gallery", galleryNewRoutes);
 app.use("/api/site-content", siteContentRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // --------------------
 // MongoDB Connection
@@ -112,13 +100,13 @@ async function startServer() {
       family: 4,
     });
 
-    console.log("✅ MongoDB Connected");
+    console.log("MongoDB Connected");
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ MongoDB connection error:", error.message);
+    console.error("MongoDB connection error:", error.message);
     process.exit(1);
   }
 }

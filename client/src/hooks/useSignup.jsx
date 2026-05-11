@@ -1,49 +1,61 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import useAuth from "./useAuthContext";
+import { apiPath, safeFetchJson } from "../config/api";
 
 export const useSignup = () => {
     const [error, setError] = useState(null);
     const { dispatch } = useAuth();
 
-    const signup = async (firstname, lastname, email, phone, role, prevRole, img, password) => {
+    const signup = async (
+      firstname,
+      lastname,
+      email,
+      phone,
+      role,
+      prevRole,
+      img,
+      password,
+      options = {},
+    ) => {
         setError(null);
-        const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
         try {
-            const response = await fetch(`${baseUrl}/api/user/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ firstname, lastname, email, phone, role, prevRole, img, password })
-            });
-            const json = await response.json();
-            if (response.ok) {
-                localStorage.setItem('user', JSON.stringify(json));
-                dispatch({ type: 'LOGIN', payload: json });
-                Swal.fire({
+            const json = await safeFetchJson(
+              apiPath("/api/user/signup"),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ firstname, lastname, email, phone, role, prevRole, img, password }),
+              },
+              null,
+            );
+
+            if (!json) {
+                throw new Error("Backend is unavailable. Please try again later.");
+            }
+
+            localStorage.setItem("user", JSON.stringify(json));
+            if (json?.token) {
+                localStorage.setItem("access-token", json.token);
+            }
+            dispatch({ type: "LOGIN", payload: json });
+            Swal.fire({
                     position: "top-middle",
                     icon: "success",
                     title: "Your account has been created",
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                return true;
-            }
-            setError(json.error || "An error occurred during signup.");
+            return true;
+
+        } catch (err) {
+            const message = err?.response?.data?.error || err.message || "Signup failed.";
+            setError(message);
             Swal.fire({
                 position: "top-middle",
                 icon: "error",
-                title: json.error || "Something went wrong. Please try again later.",
+                title: message,
                 showConfirmButton: true,
-            });
-            return false;
-
-        } catch (err) {
-            Swal.fire({
-                position: "top-middle",
-                icon: "success",
-                title: "Your account has been created",
-                showConfirmButton: false,
-                timer: 1500,
             });
             return false;
         }

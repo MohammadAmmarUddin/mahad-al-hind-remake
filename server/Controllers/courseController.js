@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const courseModel = require("../Models/courseModel.js");
+const userModel = require("../Models/userModel.js");
+const Certificate = require("../Models/certificateAuthModel.js");
 const SSLCommerzPayment = require("sslcommerz-lts");
+const { destroyCloudinaryAsset } = require("../Utils/cloudinary");
+const { createNotification } = require("../Controllers/notificationController");
 
 const createCourse = async (req, res) => {
   const {
@@ -12,11 +16,13 @@ const createCourse = async (req, res) => {
     instructorsId,
     whatsappGroupLink,
     banner,
+    bannerPublicId,
     videos,
     quizzes, // Changed from 'quiz' to 'quizzes' to match frontend
     category,
     subCategory,
     syllabus,
+    syllabusPublicId,
     keywords,
     price,
     discount,
@@ -34,6 +40,7 @@ const createCourse = async (req, res) => {
       instructorsId,
       whatsappGroupLink,
       banner,
+      bannerPublicId,
       videos,
       quiz: quizzes.map((q) => ({
         // Transform incoming quizzes to match schema
@@ -44,6 +51,7 @@ const createCourse = async (req, res) => {
       category,
       subCategory,
       syllabus,
+      syllabusPublicId,
       keywords,
       price,
       discount,
@@ -158,7 +166,59 @@ const updateCourse = async (req, res) => {
   }
 
   try {
-    const updatedCourse = await courseModel.findByIdAndUpdate(id, req.body, {
+    const currentCourse = await courseModel.findById(id);
+    if (!currentCourse) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const updatedPayload = { ...req.body };
+    const cleanupTasks = [];
+
+    if (
+      updatedPayload.bannerPublicId &&
+      currentCourse.bannerPublicId &&
+      updatedPayload.bannerPublicId !== currentCourse.bannerPublicId
+    ) {
+      cleanupTasks.push(
+        destroyCloudinaryAsset(currentCourse.bannerPublicId, "image").catch((error) => {
+          console.warn("Failed to delete replaced banner:", error.message);
+        }),
+      );
+    }
+
+    if (
+      updatedPayload.syllabusPublicId &&
+      currentCourse.syllabusPublicId &&
+      updatedPayload.syllabusPublicId !== currentCourse.syllabusPublicId
+    ) {
+      cleanupTasks.push(
+        destroyCloudinaryAsset(currentCourse.syllabusPublicId, "raw").catch((error) => {
+          console.warn("Failed to delete replaced syllabus:", error.message);
+        }),
+      );
+    }
+
+    if (Array.isArray(updatedPayload.videos) && Array.isArray(currentCourse.videos)) {
+      const incomingPublicIds = new Set(
+        updatedPayload.videos.map((video) => video?.publicId).filter(Boolean),
+      );
+
+      currentCourse.videos.forEach((video) => {
+        if (video?.publicId && !incomingPublicIds.has(video.publicId)) {
+          cleanupTasks.push(
+            destroyCloudinaryAsset(video.publicId, video.resourceType || "video").catch(
+              (error) => {
+                console.warn("Failed to delete replaced video:", error.message);
+              },
+            ),
+          );
+        }
+      });
+    }
+
+    await Promise.allSettled(cleanupTasks);
+
+    const updatedCourse = await courseModel.findByIdAndUpdate(id, updatedPayload, {
       new: true,
     });
     if (updatedCourse) {
@@ -178,6 +238,44 @@ const deleteCourse = async (req, res) => {
   }
 
   try {
+    const course = await courseModel.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const cleanupTasks = [];
+
+    if (course.bannerPublicId) {
+      cleanupTasks.push(
+        destroyCloudinaryAsset(course.bannerPublicId, "image").catch((error) => {
+          console.warn("Failed to delete course banner:", error.message);
+        }),
+      );
+    }
+
+    if (course.syllabusPublicId) {
+      cleanupTasks.push(
+        destroyCloudinaryAsset(course.syllabusPublicId, "raw").catch((error) => {
+          console.warn("Failed to delete course syllabus:", error.message);
+        }),
+      );
+    }
+
+    if (Array.isArray(course.videos)) {
+      course.videos.forEach((video) => {
+        if (video?.publicId) {
+          cleanupTasks.push(
+            destroyCloudinaryAsset(video.publicId, video.resourceType || "video").catch(
+              (error) => {
+                console.warn("Failed to delete course video:", error.message);
+              },
+            ),
+          );
+        }
+      });
+    }
+
+    await Promise.allSettled(cleanupTasks);
     const deletedCourse = await courseModel.findByIdAndDelete(id);
     if (deletedCourse) {
       res
@@ -234,11 +332,16 @@ const PaymentSession = mongoose.model(
   "PaymentSession",
   new mongoose.Schema(
     {
-      tranId: String,
-      courseId: mongoose.Schema.Types.ObjectId,
-      studentsId: mongoose.Schema.Types.ObjectId,
-      payment: String,
+      tranId: { type: String, required: true },
+      courseId: { type: mongoose.Schema.Types.ObjectId, ref: "courseCollection", required: true },
+      studentsId: { type: mongoose.Schema.Types.ObjectId, ref: "userCollection", required: true },
+      payment: { type: String, required: true },
       paymentComplete: { type: Boolean, default: false },
+      paymentMethod: { type: String, enum: ["SSLCommerz", "bKash", "Nagad", "GooglePay", "PhonePe", "manual"], default: "SSLCommerz" },
+      paymentNumber: { type: String, default: "" },
+      manualTransactionId: { type: String, default: "" },
+      status: { type: String, enum: ["pending", "approved", "rejected", "completed"], default: "completed" },
+      notes: { type: String, default: "" },
     },
     { timestamps: true }
   )
@@ -272,10 +375,10 @@ const order = async (req, res) => {
     total_amount: req.body.price,
     currency: "BDT",
     tran_id: tran_id,
-    success_url: `http://localhost:4000/api/course/payment/success/${tran_id}/${encodedData}`,
-    fail_url: `http://localhost:4000/api/course/payment/fail/${req.body.courseId}`,
-    cancel_url: "http://localhost:3030/cancel",
-    ipn_url: "http://localhost:3030/ipn",
+    success_url: `${process.env.BASE_URL}/api/course/payment/success/${tran_id}/${encodedData}`,
+    fail_url: `${process.env.BASE_URL}/api/course/payment/fail/${req.body.courseId}`,
+    cancel_url: `${process.env.BASE_URL}/cancel`,
+    ipn_url: `${process.env.BASE_URL}/ipn`,
     shipping_method: "Courier",
     product_name: "Computer.",
     product_category: "Electronic",
@@ -355,7 +458,7 @@ const success = async (req, res) => {
       });
     }
 
-    res.redirect(`http://localhost:5173/singleCourse/${courseId}`);
+    res.redirect(`${process.env.BASE_URL}/singleCourse/${courseId}`);
   } catch (err) {
     console.error("Error in success handler:", err);
     res.status(500).json({
@@ -367,7 +470,179 @@ const success = async (req, res) => {
 const fail = async (req, res) => {
   const { courseId } = req.params;
   console.log("🚀 ~ fail ~ courseId:", courseId);
-  res.redirect(`http://localhost:5173/singleCourse/${courseId}`);
+  res.redirect(`${process.env.BASE_URL}/singleCourse/${courseId}`);
+};
+
+const manualEnroll = async (req, res) => {
+  try {
+    const { courseId, studentsId, payment, paymentMethod, paymentNumber, transactionId, notes } = req.body;
+
+    if (!courseId || !studentsId || !payment) {
+      return res.status(400).json({ message: "courseId, studentsId, and payment are required." });
+    }
+
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found." });
+    }
+
+    const alreadyEnrolled = course.students.find(
+      (s) => s.studentsId.toString() === studentsId
+    );
+    if (alreadyEnrolled) {
+      return res.status(400).json({ message: "Already enrolled in this course." });
+    }
+
+    const tranId = new mongoose.Types.ObjectId().toString();
+
+    const paymentSession = new PaymentSession({
+      tranId,
+      courseId,
+      studentsId,
+      payment: String(payment),
+      paymentComplete: false,
+      paymentMethod: paymentMethod || "manual",
+      paymentNumber: paymentNumber || "",
+      manualTransactionId: transactionId || "",
+      status: "pending",
+      notes: notes || "",
+    });
+
+    await paymentSession.save();
+
+    course.students.push({
+      studentsId,
+      paymentId: tranId,
+      paymentComplete: false,
+    });
+
+    await course.save();
+
+    const studentUser = await userModel.findById(studentsId);
+    createNotification({
+      role: "admin",
+      type: "enrollment_request",
+      message: `${studentUser?.firstname || "A student"} ${studentUser?.lastname || ""} requested enrollment in "${course.title}"`,
+      link: "/dashboard/admin/allTransactions",
+      relatedId: String(paymentSession._id),
+    });
+
+    res.status(201).json({
+      message: "Enrollment request submitted. Awaiting admin approval.",
+      transaction: paymentSession,
+    });
+  } catch (error) {
+    console.error("Manual enroll error:", error);
+    res.status(500).json({ message: "Failed to submit enrollment request." });
+  }
+};
+
+const approveEnrollment = async (req, res) => {
+  try {
+    const { tranId } = req.params;
+
+    const session = await PaymentSession.findOne({ tranId });
+    if (!session) {
+      return res.status(404).json({ message: "Transaction not found." });
+    }
+
+    if (session.status !== "pending") {
+      return res.status(400).json({ message: `Enrollment is already ${session.status}.` });
+    }
+
+    session.status = "approved";
+    session.paymentComplete = true;
+    await session.save();
+
+    const courseId = session.courseId.toString();
+    const studentsId = session.studentsId.toString();
+
+    await courseModel.findOneAndUpdate(
+      { _id: courseId, "students.studentsId": studentsId },
+      { $set: { "students.$.paymentComplete": true } },
+    );
+
+    createNotification({
+      userId: session.studentsId,
+      type: "enrollment_approved",
+      message: session.courseTitle
+        ? `Your enrollment in "${session.courseTitle}" has been approved.`
+        : "Your enrollment request has been approved.",
+      link: `/singleCourse/${courseId}`,
+      relatedId: String(session._id),
+    });
+
+    res.status(200).json({ message: "Enrollment approved.", transaction: session });
+  } catch (error) {
+    console.error("Approve enrollment error:", error);
+    res.status(500).json({ message: "Failed to approve enrollment." });
+  }
+};
+
+const rejectEnrollment = async (req, res) => {
+  try {
+    const { tranId } = req.params;
+
+    const session = await PaymentSession.findOne({ tranId });
+    if (!session) {
+      return res.status(404).json({ message: "Transaction not found." });
+    }
+
+    if (session.status !== "pending") {
+      return res.status(400).json({ message: `Enrollment is already ${session.status}.` });
+    }
+
+    session.status = "rejected";
+    await session.save();
+
+    const courseId = session.courseId.toString();
+    const studentsId = session.studentsId.toString();
+
+    await courseModel.findByIdAndUpdate(courseId, {
+      $pull: { students: { studentsId } },
+    });
+
+    createNotification({
+      userId: session.studentsId,
+      type: "enrollment_rejected",
+      message: "Your enrollment request has been rejected. Please contact support for more details.",
+      link: "",
+      relatedId: String(session._id),
+    });
+
+    res.status(200).json({ message: "Enrollment rejected.", transaction: session });
+  } catch (error) {
+    console.error("Reject enrollment error:", error);
+    res.status(500).json({ message: "Failed to reject enrollment." });
+  }
+};
+
+const getPendingEnrollments = async (req, res) => {
+  try {
+    const sessions = await PaymentSession.find({ status: "pending" })
+      .populate("courseId", "title price")
+      .populate("studentsId", "firstname lastname email phone")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(sessions);
+  } catch (error) {
+    console.error("Get pending enrollments error:", error);
+    res.status(500).json({ message: "Failed to fetch pending enrollments." });
+  }
+};
+
+const getAllEnrollments = async (req, res) => {
+  try {
+    const sessions = await PaymentSession.find({})
+      .populate("courseId", "title price")
+      .populate("studentsId", "firstname lastname email phone")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(sessions);
+  } catch (error) {
+    console.error("Get all enrollments error:", error);
+    res.status(500).json({ message: "Failed to fetch enrollments." });
+  }
 };
 
 const topCourses = async (req, res) => {
@@ -483,67 +758,95 @@ const unlockVideo = async (req, res) => {
   }
 };
 
-const completeCourse = async (req, res) => {
-  // Log the incoming request data for debugging
-  console.log("Request body:", req.body);
-  console.log("Request params:", req.params);
+const generateCertificateId = async () => {
+  const year = new Date().getFullYear();
+  const count = await Certificate.countDocuments({
+    issueDate: { $gte: new Date(`${year}-01-01`), $lt: new Date(`${year + 1}-01-01`) },
+  });
+  const seq = String(count + 1).padStart(5, "0");
+  return `CERT-MAHAD-${year}-${seq}`;
+};
 
+const completeCourse = async (req, res) => {
   const courseId = req.body._id;
   const studentId = req.params.id;
 
-  console.log("Parsed IDs:", { courseId, studentId });
-
-  // Validate ObjectId format
   if (
     !mongoose.Types.ObjectId.isValid(courseId) ||
     !mongoose.Types.ObjectId.isValid(studentId)
   ) {
-    return res.status(400).json({
-      error: "Invalid courseId or studentId",
-      receivedCourseId: courseId,
-      receivedStudentId: studentId,
-    });
+    return res.status(400).json({ error: "Invalid courseId or studentId" });
   }
 
   try {
-    // Find the course
     const course = await courseModel.findById(courseId);
-
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Find the specific student in the course's students array
     const student = course.students.find(
       (s) => s.studentsId.toString() === studentId
     );
-
     if (!student) {
       return res.status(404).json({ error: "Student not found in course" });
     }
 
-    // Check if course is already completed
     if (student.isCourseComplete) {
       return res.status(400).json({
         error: "Course is already marked as complete for this student",
       });
     }
 
-    // Set isCourseComplete to true
+    const studentUser = await userModel.findById(studentId);
+    const studentName = studentUser
+      ? `${studentUser.firstname} ${studentUser.lastname}`
+      : "Student";
+
+    const certificateId = await generateCertificateId();
+
+    const certificate = new Certificate({
+      certificateId,
+      studentName,
+      courseName: course.title || "Course",
+      issueDate: new Date(),
+      valid: true,
+    });
+    await certificate.save();
+
     const updatedCourse = await courseModel.findOneAndUpdate(
       {
         _id: courseId,
         "students.studentsId": studentId,
       },
       {
-        $set: { "students.$.isCourseComplete": true },
+        $set: {
+          "students.$.isCourseComplete": true,
+          "students.$.certificateUrl": certificateId,
+        },
       },
       { new: true }
     );
 
+    createNotification({
+      userId: studentId,
+      type: "course_completed",
+      message: `Congratulations! You have completed "${course.title}". View your certificate.`,
+      link: `/certificate?certId=${certificateId}`,
+      relatedId: certificateId,
+    });
+
+    createNotification({
+      role: "admin",
+      type: "course_completed",
+      message: `${studentName} completed "${course.title}".`,
+      link: "",
+      relatedId: certificateId,
+    });
+
     res.status(200).json({
-      message: "Course marked as complete successfully",
-      updatedCourse,
+      message: "Course completed successfully",
+      certificateId,
+      certificate,
     });
   } catch (error) {
     console.error("Error in completeCourse:", error);
@@ -1101,6 +1404,11 @@ module.exports = {
   order,
   success,
   fail,
+  manualEnroll,
+  approveEnrollment,
+  rejectEnrollment,
+  getPendingEnrollments,
+  getAllEnrollments,
   topCourses,
   unlockVideo,
   completeCourse,

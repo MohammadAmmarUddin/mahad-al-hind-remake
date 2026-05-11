@@ -39,7 +39,12 @@ const userSchema = new mongoose.Schema(
     },
     img: {
       type: String,
-      required: true,
+      default: "",
+    },
+    imgPublicId: {
+      type: String,
+      default: "",
+      trim: true,
     },
     location: {
       type: String,
@@ -84,6 +89,7 @@ userSchema.statics.signup = async function (
   role,
   prevRole,
   img,
+  imgPublicId = "",
   password
 ) {
   console.log("🚀 ~ signup method ~ password before any processing:", password);
@@ -113,6 +119,7 @@ userSchema.statics.signup = async function (
       role,
       prevRole,
       img,
+      imgPublicId,
       password: hash,
     });
     return user;
@@ -125,6 +132,7 @@ userSchema.statics.signup = async function (
       role,
       prevRole,
       img,
+      imgPublicId,
       password,
     });
     return user;

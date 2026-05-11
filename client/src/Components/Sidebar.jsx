@@ -11,7 +11,6 @@ import {
   FaVideo,
   FaImages,
   FaSlidersH,
-  FaUserFriends,
   FaCalendarAlt,
 } from "react-icons/fa";
 import {
@@ -25,13 +24,15 @@ import { GrUserManager, GrAddCircle } from "react-icons/gr";
 import { NavLink, useLocation } from "react-router-dom";
 import useAuthContext from "../hooks/useAuthContext";
 import { motion } from "framer-motion";
+import { API } from "../config/api";
+import { resolveMediaUrl } from "../utils/media";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuthContext();
   const [currentUser, setCurrentUser] = useState({});
   const location = useLocation();
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+  const baseUrl = API;
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -105,7 +106,7 @@ const Sidebar = () => {
       >
         <div className="w-60 p-4 flex justify-center">
           <img
-            src={user?.user?.img || "/default-profile.png"}
+            src={resolveMediaUrl(user?.user?.img || "/default-profile.png")}
             alt="Profile"
             className="w-24 h-24 object-cover rounded-full border-4 border-white shadow-lg"
           />
@@ -183,13 +184,14 @@ const Sidebar = () => {
                   Home Sections
                 </NavLink>
               </li>
+
               <li>
                 <NavLink
                   style={navLinkStyle}
-                  to={"/dashboard/admin/fileUploader"}
+                  to={"/dashboard/admin/gallery"}
                 >
                   <FaImages />
-                  File Uploader
+                  Gallery
                 </NavLink>
               </li>
               <li>
@@ -199,24 +201,6 @@ const Sidebar = () => {
                 >
                   <FaCalendarAlt />
                   Enrollment Notice
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  style={navLinkStyle}
-                  to={"/dashboard/admin/studentGallery"}
-                >
-                  <FaUserFriends />
-                  Student Gallery
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  style={navLinkStyle}
-                  to={"/dashboard/admin/fareginGallery"}
-                >
-                  <FaImages />
-                  Faregin Gallery
                 </NavLink>
               </li>
             </>

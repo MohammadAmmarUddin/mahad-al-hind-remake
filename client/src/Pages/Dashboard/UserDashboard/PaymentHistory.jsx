@@ -2,6 +2,7 @@ import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import useAuthContext from "../../../hooks/useAuthContext";
 import { TbCurrencyTaka } from "react-icons/tb";
 import { useEffect, useState } from "react";
+import { API } from "../../../config/api";
 
 const PaymentHistory = () => {
   const { user, loading: authLoading } = useAuthContext();
@@ -18,11 +19,10 @@ const PaymentHistory = () => {
 
       try {
         setLoading(true);
-        const baseUrl = import.meta.env. VITE_MAHAD_baseUrl;
         // Fetch all data in parallel
         const [transactionsRes, coursesRes] = await Promise.all([
-          fetch(`${baseUrl}/api/course/getAllTransactions`),
-          fetch(`${baseUrl}/api/course/getAllCourses`),
+          fetch(`${API}/api/course/getAllTransactions`),
+          fetch(`${API}/api/course/getAllCourses`),
         ]);
 
         const [transactionsData, coursesData] = await Promise.all([

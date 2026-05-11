@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import useAuthContext from "../hooks/useAuthContext";
 import Swal from "sweetalert2";
+import { API } from "../config/api";
 
 const Bkash = () => {
   const { user } = useAuthContext();
@@ -32,7 +33,7 @@ const Bkash = () => {
       transactionId: "",
     });
   };
-  const baseUrl = import.meta.env.VITE_MAHAD_baseUrl;
+  const baseUrl = API;
   const handleSubmit = async () => {
     // Required fields list
     const requiredFields = [

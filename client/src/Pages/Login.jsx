@@ -7,6 +7,7 @@ import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import app from "../firebase/firebase";
 import DOMPurify from "dompurify";
 import { motion } from "framer-motion";
+import { startTransition } from "react";
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -36,11 +37,11 @@ const Login = () => {
       const userData = await login(sanitizedEmail, sanitizedPassword);
       if (userData) {
         if (userData.user.role === "student") {
-          navigate("/dashboard/user");
+          startTransition(() => navigate("/dashboard/user"));
         } else if (userData.user.role === "admin") {
-          navigate("/dashboard/admin");
+          startTransition(() => navigate("/dashboard/admin"));
         } else {
-          navigate("/");
+          startTransition(() => navigate("/"));
         }
       }
     } catch (err) {
