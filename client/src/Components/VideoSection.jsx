@@ -100,9 +100,11 @@ const VideoSection = () => {
                   className="absolute inset-0 h-full w-full border-0"
                   title={currentVideo?.title || "Video"}
                   src={
-                    playing
-                      ? `${currentVideo?.embedUrl || ""}?autoplay=1&rel=0&modestbranding=1`
-                      : `${currentVideo?.embedUrl || ""}?rel=0&modestbranding=1`
+                    currentVideo?.embedUrl
+                      ? playing
+                        ? `${currentVideo.embedUrl}?autoplay=1&rel=0&modestbranding=1`
+                        : `${currentVideo.embedUrl}?rel=0&modestbranding=1`
+                      : ""
                   }
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen

@@ -13,18 +13,12 @@ import { MdVideoLibrary, MdClose, MdRefresh } from "react-icons/md";
 import { API } from "../../../config/api";
 
 const toEmbedUrl = (url) => {
-  try {
-    const u = new URL(url);
-    let id = u.searchParams.get("v");
-
-    if (!id && u.hostname === "youtu.be") id = u.pathname.slice(1);
-    if (!id && u.pathname.includes("/embed/"))
-      id = u.pathname.split("/embed/")[1];
-
-    return id ? `https://www.youtube.com/embed/${id}` : null;
-  } catch {
-    return null;
-  }
+  if (!url || typeof url !== "string") return null;
+  const id = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/|m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/
+  )?.[1];
+  if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) return null;
+  return `https://www.youtube.com/embed/${id}`;
 };
 
 const showAlert = (options) => {
