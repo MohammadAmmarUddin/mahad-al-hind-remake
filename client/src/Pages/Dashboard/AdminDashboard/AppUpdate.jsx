@@ -13,6 +13,7 @@ const AppUpdate = () => {
     releaseNotes: "",
     forceUpdate: false,
     updateEnabled: true,
+    showToUpdated: false,
   });
 
   useEffect(() => {
@@ -30,6 +31,7 @@ const AppUpdate = () => {
           releaseNotes: data.data.releaseNotes || "",
           forceUpdate: data.data.forceUpdate || false,
           updateEnabled: data.data.updateEnabled !== false,
+          showToUpdated: data.data.showToUpdated || false,
         });
       }
     } catch (err) {
@@ -68,6 +70,7 @@ const AppUpdate = () => {
         releaseNotes: form.releaseNotes.trim(),
         forceUpdate: form.forceUpdate,
         updateEnabled: form.updateEnabled,
+        showToUpdated: form.showToUpdated,
       });
 
       if (data.success) {
@@ -223,6 +226,21 @@ const AppUpdate = () => {
                 <div>
                   <span className="label-text font-semibold">Update Enabled</span>
                   <p className="text-sm text-gray-500">Active: users will see update prompts</p>
+                </div>
+              </label>
+            </div>
+            <div className="form-control">
+              <label className="label cursor-pointer justify-start gap-4">
+                <input
+                  type="checkbox"
+                  name="showToUpdated"
+                  checked={form.showToUpdated}
+                  onChange={handleChange}
+                  className="checkbox checkbox-secondary"
+                />
+                <div>
+                  <span className="label-text font-semibold">Show to Updated Users</span>
+                  <p className="text-sm text-gray-500">Show popup even if user already has latest version</p>
                 </div>
               </label>
             </div>

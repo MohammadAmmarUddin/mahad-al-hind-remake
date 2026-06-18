@@ -27,6 +27,10 @@ const appUpdateSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    showToUpdated: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

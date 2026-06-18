@@ -39,6 +39,7 @@ exports.updateConfig = async (req, res) => {
       apkUrl,
       releaseNotes,
       updateEnabled,
+      showToUpdated,
     } = req.body || {};
 
     if (!latestVersion || latestVersion.trim() === "") {
@@ -55,6 +56,7 @@ exports.updateConfig = async (req, res) => {
     if (apkUrl !== undefined) updates.apkUrl = apkUrl.trim();
     if (releaseNotes !== undefined) updates.releaseNotes = releaseNotes.trim();
     if (updateEnabled !== undefined) updates.updateEnabled = !!updateEnabled;
+    if (showToUpdated !== undefined) updates.showToUpdated = !!showToUpdated;
 
     const config = await AppUpdate.updateConfig(updates);
     res.status(200).json({ success: true, data: config });
