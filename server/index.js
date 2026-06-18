@@ -21,6 +21,7 @@ const { legacyRouter: galleryRoutes, unifiedRouter: galleryNewRoutes } =
   require("./Routes/galleryRoutes");
 const siteContentRoutes = require("./Routes/siteContentRoutes");
 const notificationRoutes = require("./Routes/notificationRoutes");
+const appUpdateRoutes = require("./Routes/appUpdateRoutes");
 
 const app = express();
 
@@ -89,6 +90,7 @@ app.use("/api/galleries", galleryRoutes);
 app.use("/api/gallery", galleryNewRoutes);
 app.use("/api/site-content", siteContentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api", appUpdateRoutes);
 
 // --------------------
 // MongoDB Connection

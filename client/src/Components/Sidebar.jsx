@@ -12,6 +12,7 @@ import {
   FaImages,
   FaSlidersH,
   FaCalendarAlt,
+  FaMobileAlt,
 } from "react-icons/fa";
 import {
   MdLibraryBooks,
@@ -201,6 +202,15 @@ const Sidebar = () => {
                 >
                   <FaCalendarAlt />
                   Enrollment Notice
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/appUpdate"}
+                >
+                  <FaMobileAlt />
+                  App Updates
                 </NavLink>
               </li>
             </>

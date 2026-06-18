@@ -31,6 +31,7 @@ import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos";
 import HomeSectionManager from "../Pages/Dashboard/AdminDashboard/HomeSectionManager";
 import ManageGallery from "../Pages/Dashboard/AdminDashboard/ManageGallery";
 import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
+import AppUpdate from "../Pages/Dashboard/AdminDashboard/AppUpdate";
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/homeSections", element: <HomeSectionManager /> },
       { path: "/dashboard/admin/gallery", element: <ManageGallery /> },
       { path: "/dashboard/admin/enrollmentSettings", element: <EnrollmentSettings /> },
+      { path: "/dashboard/admin/appUpdate", element: <AppUpdate /> },
     ],
   },
   {
