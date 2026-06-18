@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const courseModel = require("../Models/courseModel.js");
 const userModel = require("../Models/userModel.js");
 const Certificate = require("../Models/certificateAuthModel.js");
+const PaymentSession = require("../Models/paymentSessionModel.js");
 const SSLCommerzPayment = require("sslcommerz-lts");
 const { destroyCloudinaryAsset } = require("../Utils/cloudinary");
 const { createNotification } = require("../Controllers/notificationController");
@@ -327,25 +328,6 @@ const courseCount = async (req, res) => {
 const store_id = "testi670bf7e308353";
 const store_passwd = "testi670bf7e308353@ssl";
 const is_live = false; //true for live, false for sandbox
-
-const PaymentSession = mongoose.model(
-  "PaymentSession",
-  new mongoose.Schema(
-    {
-      tranId: { type: String, required: true },
-      courseId: { type: mongoose.Schema.Types.ObjectId, ref: "courseCollection", required: true },
-      studentsId: { type: mongoose.Schema.Types.ObjectId, ref: "userCollection", required: true },
-      payment: { type: String, required: true },
-      paymentComplete: { type: Boolean, default: false },
-      paymentMethod: { type: String, enum: ["SSLCommerz", "bKash", "Nagad", "GooglePay", "PhonePe", "manual"], default: "SSLCommerz" },
-      paymentNumber: { type: String, default: "" },
-      manualTransactionId: { type: String, default: "" },
-      status: { type: String, enum: ["pending", "approved", "rejected", "completed"], default: "completed" },
-      notes: { type: String, default: "" },
-    },
-    { timestamps: true }
-  )
-);
 
 const getAllTransactions = async (req, res) => {
   try {

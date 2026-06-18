@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 const userModel = require("../Models/userModel.js");
+const courseModel = require("../Models/courseModel.js");
+const notificationModel = require("../Models/notificationModel.js");
+const galleryItemModel = require("../Models/galleryItemModel.js");
+const PaymentSession = require("../Models/paymentSessionModel.js");
 const { createNotification } = require("../Controllers/notificationController");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -206,6 +210,35 @@ const deleteUser = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).json({ error: "Invalid ID" });
   }
+
+  // ─── CONCURRENT CLEANUP: remove all references to this user ───
+  try {
+    // 1. Courses: remove from instructorsId arrays
+    await courseModel.updateMany({ instructorsId: id }, { $pull: { instructorsId: id } });
+
+    // 2. Courses: remove student enrollment entries
+    await courseModel.updateMany({ "students.studentsId": id }, { $pull: { students: { studentsId: id } } });
+
+    // 3. Courses: remove student reviews/opinions
+    await courseModel.updateMany({ "studentsOpinion.reviewerId": id }, { $pull: { studentsOpinion: { reviewerId: id } } });
+
+    // 4. Notifications: delete all notifications belonging to this user
+    await notificationModel.deleteMany({ userId: id });
+
+    // 5. Gallery items: null out uploadedBy references
+    await galleryItemModel.updateMany({ uploadedBy: id }, { $set: { uploadedBy: null } });
+
+    // 6. Payment sessions: delete all payment records for this user
+    try {
+      const PaymentSession = mongoose.model("PaymentSession");
+      await PaymentSession.deleteMany({ studentsId: id });
+    } catch (_) {
+      // PaymentSession model may not be registered yet — skip silently
+    }
+  } catch (cleanupErr) {
+    console.error("User delete cleanup error:", cleanupErr);
+  }
+
   const deletedUser = await userModel.findOneAndDelete({ _id: id });
   if (deletedUser) {
     res.status(200).json(deletedUser);
@@ -420,6 +453,21 @@ const deleteMyAccount = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Incorrect password." });
+    }
+
+    // ─── CONCURRENT CLEANUP: remove all references to this user ───
+    try {
+      await courseModel.updateMany({ instructorsId: id }, { $pull: { instructorsId: id } });
+      await courseModel.updateMany({ "students.studentsId": id }, { $pull: { students: { studentsId: id } } });
+      await courseModel.updateMany({ "studentsOpinion.reviewerId": id }, { $pull: { studentsOpinion: { reviewerId: id } } });
+      await notificationModel.deleteMany({ userId: id });
+      await galleryItemModel.updateMany({ uploadedBy: id }, { $set: { uploadedBy: null } });
+      try {
+        const PaymentSession = mongoose.model("PaymentSession");
+        await PaymentSession.deleteMany({ studentsId: id });
+      } catch (_) {}
+    } catch (cleanupErr) {
+      console.error("User delete cleanup error:", cleanupErr);
     }
 
     // Delete the user
