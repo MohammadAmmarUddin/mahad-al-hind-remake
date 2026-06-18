@@ -67,32 +67,3 @@ exports.updateConfig = async (req, res) => {
     res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
-
-// PATCH /api/app-update/toggles — Admin: instant toggle save (no validation on version/apkUrl)
-exports.updateToggles = async (req, res) => {
-  try {
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ error: "Admin access required" });
-    }
-
-    const { forceUpdate, updateEnabled, showUpdateToOutdatedUsers, showToUpdated } = req.body || {};
-    const updates = {};
-
-    if (forceUpdate !== undefined) updates.forceUpdate = !!forceUpdate;
-    if (updateEnabled !== undefined) updates.updateEnabled = !!updateEnabled;
-    if (showUpdateToOutdatedUsers !== undefined) updates.showUpdateToOutdatedUsers = !!showUpdateToOutdatedUsers;
-    if (showToUpdated !== undefined && showUpdateToOutdatedUsers === undefined) {
-      updates.showUpdateToOutdatedUsers = !!showToUpdated;
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: "No toggle fields provided" });
-    }
-
-    const config = await AppUpdate.updateConfig(updates);
-    res.status(200).json({ success: true, data: config });
-  } catch (error) {
-    console.error("Toggle update error:", error);
-    res.status(500).json({ error: error.message || "Internal server error" });
-  }
-};

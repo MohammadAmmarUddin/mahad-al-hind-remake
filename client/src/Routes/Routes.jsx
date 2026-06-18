@@ -32,6 +32,7 @@ import HomeSectionManager from "../Pages/Dashboard/AdminDashboard/HomeSectionMan
 import ManageGallery from "../Pages/Dashboard/AdminDashboard/ManageGallery";
 import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
 import AppUpdate from "../Pages/Dashboard/AdminDashboard/AppUpdate";
+import AudioLibraryAdmin from "../Pages/Dashboard/AdminDashboard/AudioLibraryAdmin";
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/gallery", element: <ManageGallery /> },
       { path: "/dashboard/admin/enrollmentSettings", element: <EnrollmentSettings /> },
       { path: "/dashboard/admin/appUpdate", element: <AppUpdate /> },
+      { path: "/dashboard/admin/audioLibrary", element: <AudioLibraryAdmin /> },
     ],
   },
   {

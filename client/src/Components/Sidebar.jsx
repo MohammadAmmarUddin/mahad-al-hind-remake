@@ -13,6 +13,7 @@ import {
   FaSlidersH,
   FaCalendarAlt,
   FaMobileAlt,
+  FaMusic,
 } from "react-icons/fa";
 import {
   MdLibraryBooks,
@@ -211,6 +212,15 @@ const Sidebar = () => {
                 >
                   <FaMobileAlt />
                   App Updates
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/audioLibrary"}
+                >
+                  <FaMusic />
+                  Audio Library
                 </NavLink>
               </li>
             </>

@@ -23,6 +23,7 @@ const siteContentRoutes = require("./Routes/siteContentRoutes");
 const notificationRoutes = require("./Routes/notificationRoutes");
 const appUpdateRoutes = require("./Routes/appUpdateRoutes");
 const cloudinaryRoutes = require("./Routes/cloudinaryRoutes");
+const audioRoutes = require("./Routes/audioRoutes");
 
 const app = express();
 
@@ -94,6 +95,7 @@ app.use("/api/site-content", siteContentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api", appUpdateRoutes);
 app.use("/api/cloudinary", cloudinaryRoutes);
+app.use("/api/audio", audioRoutes);
 
 // --------------------
 // MongoDB Connection

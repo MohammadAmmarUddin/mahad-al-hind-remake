@@ -46,12 +46,12 @@ const AppUpdate = () => {
     setTimeout(() => setSavedField((prev) => (prev === field ? null : prev)), 2000);
   }, []);
 
-  // Instant toggle save — only sends toggle fields
+  // Instant toggle save — uses the main PATCH endpoint which accepts partial updates
   const handleToggle = async (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setSaving(true);
     try {
-      await axiosSecure.patch("/api/app-update/toggles", {
+      await axiosSecure.patch("/api/app-update", {
         [field]: value,
       });
       showSaved(field);
