@@ -53,6 +53,7 @@ app.use(
   cors({
     origin: [BASE_URL, "http://localhost:5173"].filter(Boolean),
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
     credentials: true,
   }),
 );
