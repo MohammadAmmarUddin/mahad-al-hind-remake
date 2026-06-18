@@ -4,6 +4,7 @@ const {
   getAppVersion,
   getUpdateConfig,
   updateConfig,
+  updateToggles,
 } = require("../Controllers/appUpdateController");
 const requireAuth = require("../Middleware/requireAuth");
 
@@ -13,5 +14,6 @@ router.get("/app-version", getAppVersion);
 // Admin — manage update config
 router.get("/app-update", requireAuth, getUpdateConfig);
 router.patch("/app-update", requireAuth, updateConfig);
+router.patch("/app-update/toggles", requireAuth, updateToggles);
 
 module.exports = router;

@@ -27,7 +27,7 @@ const appUpdateSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    showToUpdated: {
+    showUpdateToOutdatedUsers: {
       type: Boolean,
       default: false,
     },

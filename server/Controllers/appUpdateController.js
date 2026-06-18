@@ -25,7 +25,7 @@ exports.getUpdateConfig = async (req, res) => {
   }
 };
 
-// PATCH /api/app-update — Admin: update config
+// PATCH /api/app-update — Admin: full update (version, apkUrl, notes + toggles)
 exports.updateConfig = async (req, res) => {
   try {
     if (req.user?.role !== "admin") {
@@ -39,15 +39,9 @@ exports.updateConfig = async (req, res) => {
       apkUrl,
       releaseNotes,
       updateEnabled,
+      showUpdateToOutdatedUsers,
       showToUpdated,
     } = req.body || {};
-
-    if (!latestVersion || latestVersion.trim() === "") {
-      return res.status(400).json({ error: "latestVersion is required" });
-    }
-    if (!apkUrl || apkUrl.trim() === "") {
-      return res.status(400).json({ error: "apkUrl is required" });
-    }
 
     const updates = {};
     if (latestVersion !== undefined) updates.latestVersion = latestVersion.trim();
@@ -56,12 +50,49 @@ exports.updateConfig = async (req, res) => {
     if (apkUrl !== undefined) updates.apkUrl = apkUrl.trim();
     if (releaseNotes !== undefined) updates.releaseNotes = releaseNotes.trim();
     if (updateEnabled !== undefined) updates.updateEnabled = !!updateEnabled;
-    if (showToUpdated !== undefined) updates.showToUpdated = !!showToUpdated;
+    if (showUpdateToOutdatedUsers !== undefined) updates.showUpdateToOutdatedUsers = !!showUpdateToOutdatedUsers;
+    // Backward compat: accept old field name
+    if (showToUpdated !== undefined && showUpdateToOutdatedUsers === undefined) {
+      updates.showUpdateToOutdatedUsers = !!showToUpdated;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
 
     const config = await AppUpdate.updateConfig(updates);
     res.status(200).json({ success: true, data: config });
   } catch (error) {
     console.error("Update config error:", error);
+    res.status(500).json({ error: error.message || "Internal server error" });
+  }
+};
+
+// PATCH /api/app-update/toggles — Admin: instant toggle save (no validation on version/apkUrl)
+exports.updateToggles = async (req, res) => {
+  try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    const { forceUpdate, updateEnabled, showUpdateToOutdatedUsers, showToUpdated } = req.body || {};
+    const updates = {};
+
+    if (forceUpdate !== undefined) updates.forceUpdate = !!forceUpdate;
+    if (updateEnabled !== undefined) updates.updateEnabled = !!updateEnabled;
+    if (showUpdateToOutdatedUsers !== undefined) updates.showUpdateToOutdatedUsers = !!showUpdateToOutdatedUsers;
+    if (showToUpdated !== undefined && showUpdateToOutdatedUsers === undefined) {
+      updates.showUpdateToOutdatedUsers = !!showToUpdated;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No toggle fields provided" });
+    }
+
+    const config = await AppUpdate.updateConfig(updates);
+    res.status(200).json({ success: true, data: config });
+  } catch (error) {
+    console.error("Toggle update error:", error);
     res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
