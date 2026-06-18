@@ -24,6 +24,7 @@ const unifiedRouter = express.Router();
 
 unifiedRouter.get("/", getGalleryItems);
 unifiedRouter.get("/:id", getSingleGalleryItem);
+unifiedRouter.post("/", requireAuth, requireAdmin, createGalleryItem);
 unifiedRouter.post("/upload", requireAuth, requireAdmin, uploadGalleryImage);
 unifiedRouter.put("/:id", requireAuth, requireAdmin, updateGalleryItem);
 unifiedRouter.delete("/:id", requireAuth, requireAdmin, deleteGalleryItem);

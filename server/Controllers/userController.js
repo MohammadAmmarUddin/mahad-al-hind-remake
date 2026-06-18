@@ -169,7 +169,7 @@ const loginUser = async (req, res) => {
     const user = await userModel.login(email, password);
     // Detect the device type
 
-    const token = createToken(user._id);
+    const token = createToken(user);
     if (user && token) {
       sendWelcomeEmail(email, user.firstname);
     }
@@ -480,7 +480,7 @@ const signupUserV2 = async (req, res) => {
       password,
     );
 
-    const token = createToken(user._id);
+    const token = createToken(user);
 
     createNotification({
       role: "admin",
@@ -496,33 +496,66 @@ const signupUserV2 = async (req, res) => {
   }
 };
 
+const verifyGoogleToken = async (idToken) => {
+  const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Invalid Google token: ${text}`);
+  }
+  return await response.json();
+};
+
 const googleLoginV2 = async (req, res) => {
   try {
-    const { firstname, lastname, email, phone, role, prevRole, img } = req.body;
+    const { idToken, firstname, lastname, email, phone, role, prevRole, img } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+    let finalEmail, finalFirstname, finalLastname, finalImg, finalRole;
+
+    if (idToken) {
+      // Mobile app flow: verify the Google ID token and extract user info
+      const googleUser = await verifyGoogleToken(idToken);
+
+      if (!googleUser.email) {
+        return res.status(400).json({ error: "Could not extract email from Google token" });
+      }
+
+      finalEmail = googleUser.email;
+      const name = googleUser.name || '';
+      const photoUrl = googleUser.picture || '';
+
+      const nameParts = name.split(' ');
+      finalFirstname = nameParts[0] || 'User';
+      finalLastname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Unknown';
+      finalImg = photoUrl;
+      finalRole = 'student';
+    } else if (email) {
+      // Web client flow: use user data directly (from Firebase Auth)
+      finalEmail = email;
+      finalFirstname = firstname || 'Unknown';
+      finalLastname = lastname || 'Unknown';
+      finalImg = img || '';
+      finalRole = role || 'user';
+    } else {
+      return res.status(400).json({ error: "Either idToken or email is required" });
     }
 
-    let user = await userModel.findOne({ email });
+    let user = await userModel.findOne({ email: finalEmail });
     let isNewUser = false;
 
     if (!user) {
       isNewUser = true;
-      const imageResult = await persistProfileImage(img || "", "");
       user = await userModel.create({
-        firstname,
-        lastname,
-        email,
-        phone,
-        role,
+        firstname: finalFirstname,
+        lastname: finalLastname,
+        email: finalEmail,
+        phone: phone || undefined,
+        role: finalRole,
         prevRole,
-        img: imageResult.img,
-        imgPublicId: imageResult.imgPublicId,
+        img: finalImg,
       });
     }
 
-    const token = createToken(user._id);
+    const token = createToken(user);
 
     if (isNewUser) {
       createNotification({

@@ -71,6 +71,11 @@ const defaultContent = {
     startDate: "1 February, 2026",
     endDate: "10 Ramadan, 2026",
   },
+  heroBanners: [],
+  heroBannerSettings: {
+    slideshow: false,
+    imagesOnly: false,
+  },
 };
 
 const getContentDocument = async () => {

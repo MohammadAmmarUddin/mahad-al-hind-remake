@@ -76,6 +76,15 @@ const siteContentSchema = new mongoose.Schema(
         default: "",
       },
     },
+    heroBanners: [{
+      url: { type: String, required: true },
+      publicId: { type: String, default: "" },
+      createdAt: { type: Date, default: Date.now },
+    }],
+    heroBannerSettings: {
+      slideshow: { type: Boolean, default: false },
+      imagesOnly: { type: Boolean, default: false },
+    },
   },
   { timestamps: true },
 );

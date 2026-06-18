@@ -73,10 +73,34 @@ const createNotification = async (data) => {
   }
 };
 
+const createNotificationAdmin = async (req, res) => {
+  try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Admin only" });
+    }
+    const { type, message, role, userId, link } = req.body;
+    if (!type || !message) {
+      return res.status(400).json({ message: "type and message are required" });
+    }
+    const notification = new Notification({
+      type,
+      message,
+      role: role || "all",
+      userId: userId || null,
+      link: link || "",
+    });
+    await notification.save();
+    res.status(201).json(notification);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to create notification", error: error.message });
+  }
+};
+
 module.exports = {
   getNotifications,
   markAsRead,
   markAllAsRead,
   getUnreadCount,
   createNotification,
+  createNotificationAdmin,
 };

@@ -93,22 +93,39 @@ app.use("/api/notifications", notificationRoutes);
 // --------------------
 // MongoDB Connection
 // --------------------
-async function startServer() {
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
   try {
     await mongoose.connect(MONGODB_URI, {
       serverSelectionTimeoutMS: 10000,
       family: 4,
     });
-
+    isConnected = true;
     console.log("MongoDB Connected");
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   } catch (error) {
     console.error("MongoDB connection error:", error.message);
-    process.exit(1);
+    throw error;
   }
 }
 
-startServer();
+// Connect on startup
+connectDB();
+
+// --------------------
+// Local Dev Server (skip on Vercel)
+// --------------------
+if (!process.env.VERCEL) {
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  }).catch((error) => {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+  });
+}
+
+// Vercel serverless: export the app
+module.exports = app;
