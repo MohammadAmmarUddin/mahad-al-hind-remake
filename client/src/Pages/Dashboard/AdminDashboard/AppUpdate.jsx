@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { API } from "../../../config/api";
-import useAuthContext from "../../../hooks/useAuthContext";
+import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 
 const AppUpdate = () => {
-  const { user } = useAuthContext();
+  const axiosSecure = useAxiosSecure();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -22,12 +21,7 @@ const AppUpdate = () => {
 
   const fetchConfig = async () => {
     try {
-      const res = await fetch(`${API}/api/app-update`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
-      const data = await res.json();
+      const { data } = await axiosSecure.get("/api/app-update");
       if (data.success && data.data) {
         setForm({
           latestVersion: data.data.latestVersion || "",
@@ -67,23 +61,15 @@ const AppUpdate = () => {
 
     setSaving(true);
     try {
-      const res = await fetch(`${API}/api/app-update`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          latestVersion: form.latestVersion.trim(),
-          minVersion: form.minVersion.trim() || form.latestVersion.trim(),
-          apkUrl: form.apkUrl.trim(),
-          releaseNotes: form.releaseNotes.trim(),
-          forceUpdate: form.forceUpdate,
-          updateEnabled: form.updateEnabled,
-        }),
+      const { data } = await axiosSecure.patch("/api/app-update", {
+        latestVersion: form.latestVersion.trim(),
+        minVersion: form.minVersion.trim() || form.latestVersion.trim(),
+        apkUrl: form.apkUrl.trim(),
+        releaseNotes: form.releaseNotes.trim(),
+        forceUpdate: form.forceUpdate,
+        updateEnabled: form.updateEnabled,
       });
 
-      const data = await res.json();
       if (data.success) {
         Swal.fire("Success", "App update config published!", "success");
         fetchConfig();
@@ -91,7 +77,7 @@ const AppUpdate = () => {
         Swal.fire("Error", data.error || "Failed to update", "error");
       }
     } catch (err) {
-      Swal.fire("Error", "Failed to save: " + err.message, "error");
+      Swal.fire("Error", "Failed to save: " + (err.response?.data?.error || err.message), "error");
     } finally {
       setSaving(false);
     }
@@ -109,7 +95,6 @@ const AppUpdate = () => {
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">App Update Management</h1>
 
-      {/* Status Card */}
       <div
         className={`alert mb-6 ${
           form.updateEnabled ? "alert-success" : "alert-warning"
@@ -123,16 +108,13 @@ const AppUpdate = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Version Fields */}
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
             <h2 className="card-title">Version Info</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold">
-                    Latest Version *
-                  </span>
+                  <span className="label-text font-semibold">Latest Version *</span>
                 </label>
                 <input
                   type="text"
@@ -146,9 +128,7 @@ const AppUpdate = () => {
               </div>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold">
-                    Min Version
-                  </span>
+                  <span className="label-text font-semibold">Min Version</span>
                 </label>
                 <input
                   type="text"
@@ -168,15 +148,12 @@ const AppUpdate = () => {
           </div>
         </div>
 
-        {/* APK URL */}
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
             <h2 className="card-title">APK Download</h2>
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-semibold">
-                  APK Download URL *
-                </span>
+                <span className="label-text font-semibold">APK Download URL *</span>
               </label>
               <input
                 type="url"
@@ -196,7 +173,6 @@ const AppUpdate = () => {
           </div>
         </div>
 
-        {/* Release Notes */}
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
             <h2 className="card-title">Release Notes</h2>
@@ -217,7 +193,6 @@ const AppUpdate = () => {
           </div>
         </div>
 
-        {/* Toggles */}
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
             <h2 className="card-title">Settings</h2>
@@ -231,12 +206,8 @@ const AppUpdate = () => {
                   className="checkbox checkbox-error"
                 />
                 <div>
-                  <span className="label-text font-semibold">
-                    Force Update
-                  </span>
-                  <p className="text-sm text-gray-500">
-                    Block app usage until user updates
-                  </p>
+                  <span className="label-text font-semibold">Force Update</span>
+                  <p className="text-sm text-gray-500">Block app usage until user updates</p>
                 </div>
               </label>
             </div>
@@ -250,19 +221,14 @@ const AppUpdate = () => {
                   className="checkbox checkbox-primary"
                 />
                 <div>
-                  <span className="label-text font-semibold">
-                    Update Enabled
-                  </span>
-                  <p className="text-sm text-gray-500">
-                    Active: users will see update prompts
-                  </p>
+                  <span className="label-text font-semibold">Update Enabled</span>
+                  <p className="text-sm text-gray-500">Active: users will see update prompts</p>
                 </div>
               </label>
             </div>
           </div>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           className={`btn btn-primary w-full ${saving ? "loading" : ""}`}
