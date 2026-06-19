@@ -6,25 +6,6 @@ const cors = require("cors");
 const helmet = require("helmet");
 const dns = require("dns");
 
-// routes
-const userRoutes = require("./Routes/userRoutes");
-const orderRoutes = require("./Routes/order");
-const meetRoutes = require("./Routes/meetRoutes");
-const courseRoutes = require("./Routes/courseRoutes");
-const certificateRoutes = require("./Routes/certificateAuth");
-const whatsappRoutes = require("./Routes/whatsappRoutes");
-const reviewRoutes = require("./Routes/reviewRoutes");
-const videoRoutes = require("./Routes/videoRoutes");
-const mediaRoutes = require("./Routes/mediaRoutes");
-const siteSettingsRoutes = require("./Routes/siteSettingsRoutes");
-const { legacyRouter: galleryRoutes, unifiedRouter: galleryNewRoutes } =
-  require("./Routes/galleryRoutes");
-const siteContentRoutes = require("./Routes/siteContentRoutes");
-const notificationRoutes = require("./Routes/notificationRoutes");
-const appUpdateRoutes = require("./Routes/appUpdateRoutes");
-const cloudinaryRoutes = require("./Routes/cloudinaryRoutes");
-const audioRoutes = require("./Routes/audioRoutes");
-
 const app = express();
 
 // ENV
@@ -49,7 +30,7 @@ app.use(
 );
 
 // --------------------
-// CORS (must be before routes)
+// CORS
 // --------------------
 app.use(
   cors({
@@ -60,7 +41,6 @@ app.use(
   }),
 );
 
-// Preflight support
 app.options("*", cors());
 
 // --------------------
@@ -70,6 +50,39 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 // --------------------
+// MongoDB Connection (must be BEFORE routes on Vercel)
+// --------------------
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  try {
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+      family: 4,
+    });
+    isConnected = true;
+    console.log("MongoDB Connected");
+  } catch (error) {
+    console.error("MongoDB connection error:", error.message);
+    throw error;
+  }
+}
+
+// Vercel: ensure DB is connected before any route handler runs
+if (process.env.VERCEL) {
+  app.use(async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (err) {
+      console.error("DB connection failed:", err.message);
+      res.status(503).json({ error: "Database unavailable" });
+    }
+  });
+}
+
+// --------------------
 // Health Check
 // --------------------
 app.get("/", (req, res) => {
@@ -77,8 +90,26 @@ app.get("/", (req, res) => {
 });
 
 // --------------------
-// API Routes
+// API Routes (must come AFTER DB middleware)
 // --------------------
+const userRoutes = require("./Routes/userRoutes");
+const orderRoutes = require("./Routes/order");
+const meetRoutes = require("./Routes/meetRoutes");
+const courseRoutes = require("./Routes/courseRoutes");
+const certificateRoutes = require("./Routes/certificateAuth");
+const whatsappRoutes = require("./Routes/whatsappRoutes");
+const reviewRoutes = require("./Routes/reviewRoutes");
+const videoRoutes = require("./Routes/videoRoutes");
+const mediaRoutes = require("./Routes/mediaRoutes");
+const siteSettingsRoutes = require("./Routes/siteSettingsRoutes");
+const { legacyRouter: galleryRoutes, unifiedRouter: galleryNewRoutes } =
+  require("./Routes/galleryRoutes");
+const siteContentRoutes = require("./Routes/siteContentRoutes");
+const notificationRoutes = require("./Routes/notificationRoutes");
+const appUpdateRoutes = require("./Routes/appUpdateRoutes");
+const cloudinaryRoutes = require("./Routes/cloudinaryRoutes");
+const audioRoutes = require("./Routes/audioRoutes");
+
 app.use("/api/user", userRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
@@ -98,29 +129,6 @@ app.use("/api/cloudinary", cloudinaryRoutes);
 app.use("/api/audio", audioRoutes);
 
 // --------------------
-// MongoDB Connection
-// --------------------
-let isConnected = false;
-
-async function connectDB() {
-  if (isConnected) return;
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 10000,
-      family: 4,
-    });
-    isConnected = true;
-    console.log("MongoDB Connected");
-  } catch (error) {
-    console.error("MongoDB connection error:", error.message);
-    throw error;
-  }
-}
-
-// Connect on startup
-connectDB();
-
-// --------------------
 // Local Dev Server (skip on Vercel)
 // --------------------
 if (!process.env.VERCEL) {
@@ -134,5 +142,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-// Vercel serverless: export the app
 module.exports = app;
