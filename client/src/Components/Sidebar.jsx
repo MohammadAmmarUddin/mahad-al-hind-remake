@@ -14,6 +14,7 @@ import {
   FaCalendarAlt,
   FaMobileAlt,
   FaMusic,
+  FaWallet,
 } from "react-icons/fa";
 import {
   MdLibraryBooks,
@@ -221,6 +222,15 @@ const Sidebar = () => {
                 >
                   <FaMusic />
                   Audio Library
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  style={navLinkStyle}
+                  to={"/dashboard/admin/finance"}
+                >
+                  <FaWallet />
+                  Finance
                 </NavLink>
               </li>
             </>

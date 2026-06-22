@@ -109,6 +109,7 @@ const notificationRoutes = require("./Routes/notificationRoutes");
 const appUpdateRoutes = require("./Routes/appUpdateRoutes");
 const cloudinaryRoutes = require("./Routes/cloudinaryRoutes");
 const audioRoutes = require("./Routes/audioRoutes");
+const financeRoutes = require("./Routes/financeRoutes");
 
 app.use("/api/user", userRoutes);
 app.use("/api/course", courseRoutes);
@@ -127,6 +128,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api", appUpdateRoutes);
 app.use("/api/cloudinary", cloudinaryRoutes);
 app.use("/api/audio", audioRoutes);
+app.use("/api/finance", financeRoutes);
 
 // --------------------
 // Local Dev Server (skip on Vercel)

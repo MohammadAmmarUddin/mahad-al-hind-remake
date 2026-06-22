@@ -33,6 +33,7 @@ import ManageGallery from "../Pages/Dashboard/AdminDashboard/ManageGallery";
 import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
 import AppUpdate from "../Pages/Dashboard/AdminDashboard/AppUpdate";
 import AudioLibraryAdmin from "../Pages/Dashboard/AdminDashboard/AudioLibraryAdmin";
+import FinanceOverview from "../Pages/Dashboard/AdminDashboard/FinanceOverview";
 
 export const router = createBrowserRouter([
   {
@@ -73,6 +74,7 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/enrollmentSettings", element: <EnrollmentSettings /> },
       { path: "/dashboard/admin/appUpdate", element: <AppUpdate /> },
       { path: "/dashboard/admin/audioLibrary", element: <AudioLibraryAdmin /> },
+      { path: "/dashboard/admin/finance", element: <FinanceOverview /> },
     ],
   },
   {

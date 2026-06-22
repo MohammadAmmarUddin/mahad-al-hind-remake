@@ -57,19 +57,9 @@ const Login = () => {
 
       if (!user.email) throw new Error("Google login failed: Email is missing");
 
-      const randomPhone = Math.floor(Math.random() * 9000000000) + 1000000000;
+      const idToken = await user.getIdToken();
 
-      const userData = {
-        firstname: user.displayName?.split(" ")[0] || "Unknown",
-        lastname: user.displayName?.split(" ")[1] || "Unknown",
-        email: user.email,
-        phone: user.phoneNumber || randomPhone.toString(),
-        role: "user",
-        prevRole: "user",
-        img: user.photoURL || "",
-      };
-
-      await googleLogin(userData);
+      await googleLogin({ idToken, provider: "firebase" });
     } catch (error) {
       console.error("Google login error:", error);
       setError(DOMPurify.sanitize(error.message || "Google login failed. Please try again."));

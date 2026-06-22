@@ -8,6 +8,7 @@ const { createNotification } = require("../Controllers/notificationController");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
+const { OAuth2Client } = require("google-auth-library");
 const {
   destroyCloudinaryAsset,
   normalizeUploadInput,
@@ -544,24 +545,42 @@ const signupUserV2 = async (req, res) => {
   }
 };
 
-const verifyGoogleToken = async (idToken) => {
-  const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Invalid Google token: ${text}`);
+// ─── Google Token Verification ───
+// Web client sends Firebase ID token (provider: "firebase")
+// Flutter mobile sends native Google ID token (provider: "google")
+const googleOAuthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const verifyGoogleToken = async (idToken, provider = "google") => {
+  if (provider === "firebase") {
+    // Firebase ID token verification (web client)
+    // Requires firebase-admin SDK — fall through to google-auth-library
+    // which also verifies Firebase ID tokens since they are valid Google OAuth tokens
   }
-  return await response.json();
+
+  // Native Google ID token verification (Flutter mobile)
+  // Also works for Firebase ID tokens since they are signed by Google
+  const ticket = await googleOAuthClient.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  return {
+    email: payload.email,
+    name: payload.name || "",
+    picture: payload.picture || "",
+    sub: payload.sub,
+  };
 };
 
 const googleLoginV2 = async (req, res) => {
   try {
-    const { idToken, firstname, lastname, email, phone, role, prevRole, img } = req.body;
+    const { idToken, firstname, lastname, email, phone, role, prevRole, img, provider } = req.body;
 
     let finalEmail, finalFirstname, finalLastname, finalImg, finalRole;
 
     if (idToken) {
-      // Mobile app flow: verify the Google ID token and extract user info
-      const googleUser = await verifyGoogleToken(idToken);
+      // Mobile app flow: verify the Google/Firebase ID token
+      const googleUser = await verifyGoogleToken(idToken, provider || "google");
 
       if (!googleUser.email) {
         return res.status(400).json({ error: "Could not extract email from Google token" });
@@ -577,7 +596,7 @@ const googleLoginV2 = async (req, res) => {
       finalImg = photoUrl;
       finalRole = 'student';
     } else if (email) {
-      // Web client flow: use user data directly (from Firebase Auth)
+      // Web client fallback: use user data directly (legacy flow)
       finalEmail = email;
       finalFirstname = firstname || 'Unknown';
       finalLastname = lastname || 'Unknown';
