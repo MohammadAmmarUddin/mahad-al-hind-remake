@@ -110,6 +110,11 @@ const appUpdateRoutes = require("./Routes/appUpdateRoutes");
 const cloudinaryRoutes = require("./Routes/cloudinaryRoutes");
 const audioRoutes = require("./Routes/audioRoutes");
 const financeRoutes = require("./Routes/financeRoutes");
+const noticeRoutes = require("./Routes/noticeRoutes");
+const breakingNewsRoutes = require("./Routes/breakingNewsRoutes");
+const heroBannerRoutes = require("./Routes/heroBannerRoutes");
+const noticeCategoryRoutes = require("./Routes/noticeCategoryRoutes");
+const studentVideoReviewRoutes = require("./Routes/studentVideoReviewRoutes");
 
 app.use("/api/user", userRoutes);
 app.use("/api/course", courseRoutes);
@@ -129,6 +134,17 @@ app.use("/api", appUpdateRoutes);
 app.use("/api/cloudinary", cloudinaryRoutes);
 app.use("/api/audio", audioRoutes);
 app.use("/api/finance", financeRoutes);
+app.use("/api/notices", noticeRoutes);
+app.use("/api/breaking-news", breakingNewsRoutes);
+app.use("/api/hero-banners", heroBannerRoutes);
+app.use("/api/notice-categories", noticeCategoryRoutes);
+app.use("/api/student-video-reviews", studentVideoReviewRoutes);
+
+// --------------------
+// Mobile Auth (HTML page for Chrome Custom Tab)
+// --------------------
+const { mobileSignInPage } = require("./Controllers/mobileAuthController");
+app.get("/auth/mobile-signin", mobileSignInPage);
 
 // --------------------
 // Local Dev Server (skip on Vercel)

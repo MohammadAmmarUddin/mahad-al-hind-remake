@@ -26,6 +26,7 @@ const siteContentSchema = new mongoose.Schema(
       courses: localizedTextSchema,
       certificateChecker: localizedTextSchema,
       admissionHelp: localizedTextSchema,
+      notice: localizedTextSchema,
       login: localizedTextSchema,
       signup: localizedTextSchema,
       profile: localizedTextSchema,
@@ -57,6 +58,22 @@ const siteContentSchema = new mongoose.Schema(
     gallerySection: {
       studentTitle: localizedTextSchema,
       fareginTitle: localizedTextSchema,
+    },
+    noticeBoard: {
+      badge: localizedTextSchema,
+      title: localizedTextSchema,
+      subtitle: localizedTextSchema,
+      searchPlaceholder: localizedTextSchema,
+      search: localizedTextSchema,
+      all: localizedTextSchema,
+      noNotices: localizedTextSchema,
+      noNoticesSub: localizedTextSchema,
+      noResults: localizedTextSchema,
+      clearFilters: localizedTextSchema,
+      postedBy: localizedTextSchema,
+      downloadNotice: localizedTextSchema,
+      loading: localizedTextSchema,
+      error: localizedTextSchema,
     },
     enrollmentWidget: {
       isVisible: {

@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const https = require("https");
+const http = require("http");
 const FinanceTransaction = require("../Models/financeTransactionModel");
 const FinanceBudget = require("../Models/financeBudgetModel");
 const FinanceSavingsGoal = require("../Models/financeSavingsGoalModel");
@@ -7,6 +9,64 @@ const FinanceIncomeSource = require("../Models/financeIncomeSourceModel");
 
 // ─── Helper: Currency Formatting Labels ───
 const CURRENCY_SYMBOLS = { BDT: "৳", INR: "₹", USD: "$" };
+
+// ─── Exchange Rate Cache ───
+let exchangeRateCache = { rates: null, fetchedAt: 0 };
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+const FALLBACK_RATES_TO_BDT = { BDT: 1, INR: 1.45, USD: 121.5 };
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith("https") ? https : http;
+    const req = client.get(url, { timeout: 5000 }, (res) => {
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+      let body = "";
+      res.on("data", (chunk) => (body += chunk));
+      res.on("end", () => {
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(e); }
+      });
+    });
+    req.on("error", reject);
+    req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
+  });
+}
+
+async function getExchangeRatesToBDT() {
+  const now = Date.now();
+  if (exchangeRateCache.rates && (now - exchangeRateCache.fetchedAt) < CACHE_TTL) {
+    return exchangeRateCache.rates;
+  }
+
+  try {
+    const data = await fetchJson("https://open.er-api.com/v6/latest/USD");
+    if (data && data.rates && data.rates.BDT) {
+      const usdToBdt = data.rates.BDT;
+      const rates = {
+        BDT: 1,
+        USD: usdToBdt,
+        INR: data.rates.INR ? usdToBdt / data.rates.INR : FALLBACK_RATES_TO_BDT.INR,
+      };
+      exchangeRateCache = { rates, fetchedAt: now };
+      return rates;
+    }
+  } catch (e) {
+    console.warn("[Finance] Exchange rate fetch failed, using fallback:", e.message);
+  }
+
+  if (!exchangeRateCache.rates) {
+    exchangeRateCache = { rates: FALLBACK_RATES_TO_BDT, fetchedAt: now };
+  }
+  return exchangeRateCache.rates;
+}
+
+function convertToBDT(amount, currency, rates) {
+  const rate = rates[currency] || 1;
+  return Math.round(amount * rate * 100) / 100;
+}
 
 // ─── TRANSACTIONS ───
 
@@ -188,16 +248,23 @@ const getDashboardSummary = async (req, res) => {
       summary[c].balance = summary[c].income - summary[c].expense;
     }
 
-    // Overall totals across all currencies (display only, no conversion)
-    const totalIncome = currencies.reduce((sum, c) => sum + summary[c].income, 0);
-    const totalExpense = currencies.reduce((sum, c) => sum + summary[c].expense, 0);
+    // Convert all currencies to BDT for totals
+    const rates = await getExchangeRatesToBDT();
+    const totalIncome = currencies.reduce((sum, c) => sum + convertToBDT(summary[c].income, c, rates), 0);
+    const totalExpense = currencies.reduce((sum, c) => sum + convertToBDT(summary[c].expense, c, rates), 0);
     const totalBalance = totalIncome - totalExpense;
 
     res.status(200).json({
       success: true,
       data: {
         currencies: summary,
-        totals: { income: totalIncome, expense: totalExpense, balance: totalBalance },
+        totals: {
+          income: totalIncome,
+          expense: totalExpense,
+          balance: totalBalance,
+          currency: "BDT",
+          rates: { INR: rates.INR, USD: rates.USD },
+        },
         month: m,
         year: y,
       },

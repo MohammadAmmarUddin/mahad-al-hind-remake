@@ -6,9 +6,9 @@ const galleryItemModel = require("../Models/galleryItemModel.js");
 const PaymentSession = require("../Models/paymentSessionModel.js");
 const { createNotification } = require("../Controllers/notificationController");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
-const { OAuth2Client } = require("google-auth-library");
 const {
   destroyCloudinaryAsset,
   normalizeUploadInput,
@@ -546,24 +546,73 @@ const signupUserV2 = async (req, res) => {
 };
 
 // ─── Google Token Verification ───
-// Web client sends Firebase ID token (provider: "firebase")
-// Flutter mobile sends native Google ID token (provider: "google")
-const googleOAuthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// Fetches Google's public certs at runtime and verifies JWT manually.
+// Firebase tokens use different signing keys than standard Google OAuth.
+
+const FIREBASE_PROJECT_ID = process.env.GOOGLE_FIREBASE_PROJECT_ID || "context-auth-e9060";
+const GOOGLE_CERTS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
+
+let googleCertsCache = { keys: null, fetchedAt: 0 };
+const CERTS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+async function getGoogleCerts() {
+  const now = Date.now();
+  if (googleCertsCache.keys && (now - googleCertsCache.fetchedAt) < CERTS_CACHE_TTL) {
+    return googleCertsCache.keys;
+  }
+  try {
+    const res = await fetch(GOOGLE_CERTS_URL);
+    const data = await res.json();
+    const keys = {};
+    // Firebase x509 endpoint returns { "kid": "-----BEGIN CERTIFICATE-----..." }
+    for (const [kid, pem] of Object.entries(data)) {
+      if (typeof pem === "string" && pem.includes("BEGIN CERTIFICATE")) {
+        keys[kid] = pem;
+      }
+    }
+    googleCertsCache = { keys, fetchedAt: now };
+    return keys;
+  } catch (e) {
+    console.warn("[Google] Failed to fetch certs:", e.message);
+    return googleCertsCache.keys || {};
+  }
+}
+
+function getGooglePublicKey(kid, keys) {
+  return keys[kid] || null;
+}
 
 const verifyGoogleToken = async (idToken, provider = "google") => {
-  if (provider === "firebase") {
-    // Firebase ID token verification (web client)
-    // Requires firebase-admin SDK — fall through to google-auth-library
-    // which also verifies Firebase ID tokens since they are valid Google OAuth tokens
+  const audience = provider === "firebase"
+    ? FIREBASE_PROJECT_ID
+    : process.env.GOOGLE_CLIENT_ID;
+
+  const certs = await getGoogleCerts();
+
+  const decoded = jwt.decode(idToken, { complete: true });
+  if (!decoded || !decoded.header || !decoded.header.kid) {
+    throw new Error("Invalid Google token: no kid found");
   }
 
-  // Native Google ID token verification (Flutter mobile)
-  // Also works for Firebase ID tokens since they are signed by Google
-  const ticket = await googleOAuthClient.verifyIdToken({
-    idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-  const payload = ticket.getPayload();
+  const publicKey = getGooglePublicKey(decoded.header.kid, certs);
+  if (!publicKey) {
+    // Refetch certs once in case of key rotation
+    googleCertsCache.fetchedAt = 0;
+    const freshCerts = await getGoogleCerts();
+    const freshKey = getGooglePublicKey(decoded.header.kid, freshCerts);
+    if (!freshKey) {
+      throw new Error(`No PEM found for kid: ${decoded.header.kid}`);
+    }
+    const payload = jwt.verify(idToken, freshKey, { algorithms: ["RS256"], audience: audience });
+    return {
+      email: payload.email,
+      name: payload.name || "",
+      picture: payload.picture || "",
+      sub: payload.sub,
+    };
+  }
+
+  const payload = jwt.verify(idToken, publicKey, { algorithms: ["RS256"], audience: audience });
   return {
     email: payload.email,
     name: payload.name || "",
