@@ -816,7 +816,7 @@ Response: `{ message: "Media deleted successfully" }`. Cloudinary asset also des
 GET /api/gallery?galleryType=student&page=1&limit=20
 ```
 
-Query params: `galleryType` (student|faregin|general), `search`, `page`, `limit`, `admin` (bool).
+Query params: `galleryType` (student|just_memories|general), `search`, `page`, `limit`, `admin` (bool).
 
 Response: `{ success, data: [ items ], pagination: { page, limit, total, pages } }`
 

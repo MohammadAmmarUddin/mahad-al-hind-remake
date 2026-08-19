@@ -57,7 +57,7 @@ const siteContentSchema = new mongoose.Schema(
     },
     gallerySection: {
       studentTitle: localizedTextSchema,
-      fareginTitle: localizedTextSchema,
+      justMemoriesTitle: localizedTextSchema,
     },
     noticeBoard: {
       badge: localizedTextSchema,

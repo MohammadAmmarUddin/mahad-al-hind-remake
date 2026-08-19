@@ -46,7 +46,7 @@ const fallbackContent = {
   },
   gallerySection: {
     studentTitle: { en: "Our Students Gallery", bn: "Our Students Gallery" },
-    fareginTitle: { en: "Gallery", bn: "গ্যালারি" },
+    justMemoriesTitle: { en: "Just Memories", bn: "Just Memories" },
   },
   noticeBoard: {
     badge: { en: "Notice Board", bn: "Notice Board" },

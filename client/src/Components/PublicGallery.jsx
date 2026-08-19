@@ -26,7 +26,7 @@ const PublicGallery = () => {
           viewport={{ once: true }}
           className="mb-10 text-center font-heading text-display-sm font-bold text-neutral-900 sm:text-display-md"
         >
-          {translate("gallerySection", "fareginTitle")}
+          {translate("gallerySection", "justMemoriesTitle")}
         </motion.h2>
 
         {isLoading ? (

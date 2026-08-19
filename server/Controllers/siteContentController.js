@@ -60,7 +60,7 @@ const defaultContent = {
   },
   gallerySection: {
     studentTitle: { en: "Our Students Gallery", bn: "আমাদের শিক্ষার্থীদের গ্যালারি" },
-    fareginTitle: { en: "Gallery", bn: "গ্যালারি" },
+    justMemoriesTitle: { en: "Just Memories", bn: "Just Memories" },
   },
   enrollmentWidget: {
     isVisible: true,

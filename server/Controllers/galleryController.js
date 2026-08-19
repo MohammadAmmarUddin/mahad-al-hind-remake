@@ -7,7 +7,7 @@ const {
   isCloudinaryConfigured,
 } = require("../Utils/cloudinary");
 
-const allowedGalleryTypes = ["student", "faregin", "general"];
+const allowedGalleryTypes = ["student", "just_memories", "general"];
 
 const normalizeGalleryType = (galleryType) =>
   allowedGalleryTypes.includes(galleryType) ? galleryType : null;
@@ -43,7 +43,7 @@ const getGalleryItems = async (req, res) => {
       if (!normalized) {
         return res.status(400).json({
           success: false,
-          message: "Invalid gallery type. Use 'student', 'faregin', or 'general'.",
+          message: "Invalid gallery type. Use 'student', 'just_memories', or 'general'.",
         });
       }
       filter.galleryType = normalized;

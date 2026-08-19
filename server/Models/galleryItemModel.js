@@ -4,7 +4,7 @@ const galleryItemSchema = new mongoose.Schema(
   {
     galleryType: {
       type: String,
-      enum: ["student", "faregin", "general"],
+      enum: ["student", "just_memories", "general"],
       default: "general",
       index: true,
     },
