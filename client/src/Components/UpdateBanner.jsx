@@ -1,94 +1,83 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FaUsers, FaBookOpen, FaGlobe, FaAward } from "react-icons/fa";
 
 const LiveStatsBanner = () => {
-  const [stats, setStats] = useState({
-    students: 285,
+  const stats = {
+    students: 300,
     courses: 20,
     countries: 4,
     successRate: 92,
-  });
-
-  // Simulate real-time update (replace with API later)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats((prev) => ({
-        students: prev.students + Math.floor(Math.random() * 3),
-        courses: prev.courses,
-        countries: prev.countries,
-        successRate: prev.successRate,
-      }));
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
+  };
 
   const statItems = [
     {
-      icon: <FaUsers size={40} />,
+      icon: <FaUsers className="h-7 w-7" />,
       value: `${stats.students}+`,
       label: "Active Students",
-      color: "text-emerald-700",
+      color: "text-primary-600",
+      bg: "bg-primary-50",
     },
     {
-      icon: <FaBookOpen size={40} />,
+      icon: <FaBookOpen className="h-7 w-7" />,
       value: `${stats.courses}+`,
       label: "Courses",
-      color: "text-primary",
+      color: "text-primary-700",
+      bg: "bg-primary-50",
     },
     {
-      icon: <FaGlobe size={40} />,
+      icon: <FaGlobe className="h-7 w-7" />,
       value: `${stats.countries}+`,
       label: "Countries",
-      color: "text-emerald-600",
+      color: "text-primary-600",
+      bg: "bg-primary-50",
     },
     {
-      icon: <FaAward size={40} />,
+      icon: <FaAward className="h-7 w-7" />,
       value: `${stats.successRate}%`,
       label: "Success Rate",
-      color: "text-primary",
+      color: "text-primary-700",
+      bg: "bg-primary-50",
     },
   ];
 
   return (
-    <div className="bg-gradient-to-r from-emerald-50 via-white to-emerald-50 py-14">
-      <div className="lg:w-3/4 w-11/12 mx-auto">
-        {/* Title */}
+    <section className="bg-gradient-to-r from-primary-50/60 via-white to-primary-50/60 section-padding">
+      <div className="container-main">
         <motion.h2
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-2xl md:text-4xl font-bold text-center text-emerald-800 mb-10"
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="mb-12 text-center font-heading text-display-sm font-bold text-neutral-900 sm:text-display-md"
         >
-          Our Growing Qira’at Community Worldwide
+          Our Growing Qira&apos;at Community Worldwide
         </motion.h2>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="grid grid-cols-2 gap-4 text-center sm:gap-6 md:grid-cols-4">
           {statItems.map((item, index) => (
             <motion.div
               key={index}
-              whileHover={{ scale: 1.05 }}
-              initial={{ opacity: 0, y: 40 }}
+              whileHover={{ y: -4 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.2 }}
-              className="bg-white shadow-md rounded-xl p-6 border border-emerald-100 hover:shadow-xl transition-all duration-300"
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              viewport={{ once: true }}
+              className="card-interactive p-5 sm:p-6"
             >
-              <div className={`${item.color} flex justify-center mb-4`}>
+              <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${item.bg} ${item.color}`}>
                 {item.icon}
               </div>
-              <h3 className={`text-2xl md:text-3xl font-bold ${item.color}`}>
+              <h3 className={`font-heading text-2xl font-bold sm:text-3xl ${item.color}`}>
                 {item.value}
               </h3>
-              <p className="text-gray-600 mt-2 text-sm md:text-base">
+              <p className="mt-2 text-body-sm text-neutral-500">
                 {item.label}
               </p>
             </motion.div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

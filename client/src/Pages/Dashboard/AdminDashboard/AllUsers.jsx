@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  FaChevronLeft,
-  FaChevronRight,
-  FaSearch,
-} from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import Swal from "sweetalert2";
 import { API } from "../../../config/api";
@@ -28,13 +24,10 @@ const AllUsers = () => {
   }, [searchTerm]);
 
   const fetchAllUsers = useCallback(() => {
-    const url = `${API}/api/user/allUsers`;
-    fetch(url)
+    fetch(`${API}/api/user/allUsers`)
       .then((res) => res.json())
-      .then((data) => {
-        setAllUsers(data);
-      })
-      .catch((error) => console.log(error));
+      .then(setAllUsers)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -59,19 +52,19 @@ const AllUsers = () => {
       text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#125ca6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#047857",
+      cancelButtonColor: "#dc2626",
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
         fetch(`${API}/api/user/deleteUser/${id}`, { method: "DELETE" })
           .then((res) => res.json())
           .then(() => {
-            Swal.fire({ title: "Deleted!", text: "The user has been deleted.", icon: "success", confirmButtonColor: "#125ca6" });
+            Swal.fire({ title: "Deleted!", text: "The user has been deleted.", icon: "success", confirmButtonColor: "#047857" });
             fetchAllUsers();
           })
           .catch(() => {
-            Swal.fire({ title: "Error!", text: "There was an error deleting the user.", icon: "error", confirmButtonColor: "#125ca6" });
+            Swal.fire({ title: "Error!", text: "There was an error deleting the user.", icon: "error", confirmButtonColor: "#047857" });
           });
       }
     });
@@ -83,8 +76,8 @@ const AllUsers = () => {
       text: `Change this user's role to "${newRole}"?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#125ca6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#047857",
+      cancelButtonColor: "#dc2626",
       confirmButtonText: "Yes, do it!",
     }).then((result) => {
       if (result.isConfirmed) {
@@ -98,15 +91,8 @@ const AllUsers = () => {
             return res.json();
           })
           .then((data) => {
-            Swal.fire({
-              title: "Done!",
-              text: `${data.firstname} ${data.lastname} is now a "${data.role}"`,
-              icon: "success",
-              confirmButtonColor: "#125ca6",
-            });
-            setAllUsers((prev) =>
-              prev.map((u) => (u._id === id ? { ...u, role: data.role } : u))
-            );
+            Swal.fire({ title: "Done!", text: `${data.firstname} ${data.lastname} is now a "${data.role}"`, icon: "success", confirmButtonColor: "#047857" });
+            setAllUsers((prev) => prev.map((u) => (u._id === id ? { ...u, role: data.role } : u)));
           })
           .catch((err) => {
             Swal.fire({ title: "Error", text: err.message, icon: "error" });
@@ -121,114 +107,105 @@ const AllUsers = () => {
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   return (
-    <div className="m-6">
-      <h1 className="text-3xl font-bold text-primary mb-6">All Users</h1>
+    <div className="p-4 pt-6 lg:p-6">
+      <h1 className="mb-6 font-heading text-display-sm font-bold text-neutral-900">All Users</h1>
 
-      <div className="relative mb-4 max-w-sm">
-        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <div className="relative mb-5 max-w-sm">
+        <FaSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search by name, email, role, phone..."
-          className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 outline-none focus:border-primary"
+          className="input-base pl-10"
         />
       </div>
 
-      <div className="overflow-x-auto border rounded-md">
-        <table className="table table-zebra w-full">
-          <thead>
-            <tr className="grid grid-cols-6">
-              <th>Sl no.</th>
-              <th className="col-span-3">Name / Email</th>
-              <th>Role</th>
-              <th className="text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentUsers.length > 0 ? (
-              currentUsers.map((user, index) => (
-                <tr key={user._id} className="grid grid-cols-6 items-center">
-                  <td>{indexOfFirstUser + index + 1}</td>
-                  <td className="col-span-3">
-                    <p className="font-medium">{user.firstname} {user.lastname}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
-                  </td>
-                  <td>
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                      className="select select-bordered select-xs w-full max-w-[110px] rounded-md border-slate-200 text-sm"
-                    >
-                      {ROLE_OPTIONS.map((r) => (
-                        <option key={r} value={r}>
-                          {r.charAt(0).toUpperCase() + r.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="text-right">
-                    <button
-                      className="tooltip btn btn-ghost btn-xs p-1"
-                      data-tip="Delete User"
-                      onClick={() => handleDelete(user._id)}
-                    >
-                      <RiDeleteBin5Line className="text-lg text-error" />
-                    </button>
+      <div className="card-base overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-neutral-100 bg-neutral-50">
+                <th className="px-4 py-3 text-meta font-semibold text-neutral-500">Sl no.</th>
+                <th className="px-4 py-3 text-meta font-semibold text-neutral-500">Name / Email</th>
+                <th className="px-4 py-3 text-meta font-semibold text-neutral-500">Role</th>
+                <th className="px-4 py-3 text-right text-meta font-semibold text-neutral-500">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentUsers.length > 0 ? (
+                currentUsers.map((user, index) => (
+                  <tr key={user._id} className="border-b border-neutral-50 transition-colors hover:bg-neutral-50/50">
+                    <td className="px-4 py-3 text-neutral-500">{indexOfFirstUser + index + 1}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-neutral-800">{user.firstname} {user.lastname}</p>
+                      <p className="text-xs text-neutral-400">{user.email}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                        className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-medium text-neutral-700 outline-none transition-colors focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+                      >
+                        {ROLE_OPTIONS.map((r) => (
+                          <option key={r} value={r}>
+                            {r.charAt(0).toUpperCase() + r.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDelete(user._id)}
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                        title="Delete User"
+                      >
+                        <RiDeleteBin5Line className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-4 py-12 text-center text-body-sm text-neutral-400">
+                    {debouncedSearch ? "No users match your search." : "No users found."}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center py-8 text-slate-500">
-                  {debouncedSearch ? "No users match your search." : "No users found."}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-8">
-          <nav>
-            <ul className="pagination flex items-center gap-3">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className={`text-2xl py-2 px-4 rounded ${
-                  currentPage === 1
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-primary"
-                }`}
-              >
-                <FaChevronLeft />
-              </button>
-              {[...Array(totalPages)].map((_, i) => (
-                <li key={i + 1} className="page-item">
-                  <button
-                    className={`page-link py-2 px-4 rounded text-white ${
-                      currentPage === i + 1 ? "bg-primary" : "bg-primary/60"
-                    }`}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                </li>
-              ))}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className={`text-2xl py-2 px-4 rounded ${
-                  currentPage === totalPages
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-primary"
-                }`}
-              >
-                <FaChevronRight />
-              </button>
-            </ul>
-          </nav>
+        <div className="mt-6 flex items-center justify-center gap-1.5">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:border-primary-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <FaChevronLeft className="h-3 w-3" />
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 ${
+                currentPage === i + 1
+                  ? "bg-primary-600 text-white shadow-sm"
+                  : "border border-neutral-200 bg-white text-neutral-600 hover:border-primary-300 hover:text-primary-600"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:border-primary-300 hover:text-primary-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <FaChevronRight className="h-3 w-3" />
+          </button>
         </div>
       )}
     </div>

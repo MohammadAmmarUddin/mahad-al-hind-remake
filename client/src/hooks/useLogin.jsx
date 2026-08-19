@@ -2,7 +2,7 @@ import { useState } from "react";
 import useAuth from "./useAuthContext";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import { apiPath, safeFetchJson } from "../config/api";
+import { apiPath, safeFetch } from "../config/api";
 import { startTransition } from "react";
 
 export const useLogin = () => {
@@ -15,22 +15,35 @@ export const useLogin = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const json = await safeFetchJson(
+      const response = await safeFetch(
         apiPath("/api/user/login"),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         },
-        null,
       );
 
-      if (!json) {
+      if (!response) {
         setError("Backend is unavailable. Please try again later.");
         Swal.fire({
           position: "center",
           icon: "error",
           title: "Backend is unavailable. Please try again later.",
+          showConfirmButton: true,
+        });
+        return null;
+      }
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        const msg = json.error || json.message || "Login failed. Please try again.";
+        setError(msg);
+        Swal.fire({
+          position: "center",
+          icon: "error",
+          title: msg,
           showConfirmButton: true,
         });
         return null;
@@ -60,18 +73,23 @@ export const useLogin = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const json = await safeFetchJson(
+      const response = await safeFetch(
         apiPath("/api/user/googleLogin"),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(userData),
         },
-        null,
       );
 
-      if (!json) {
+      if (!response) {
         throw new Error("Backend is unavailable. Please try again later.");
+      }
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json.error || json.message || "Google login failed.");
       }
 
       localStorage.setItem("user", JSON.stringify(json));

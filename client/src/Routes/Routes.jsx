@@ -34,6 +34,10 @@ import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSett
 import AppUpdate from "../Pages/Dashboard/AdminDashboard/AppUpdate";
 import AudioLibraryAdmin from "../Pages/Dashboard/AdminDashboard/AudioLibraryAdmin";
 import FinanceOverview from "../Pages/Dashboard/AdminDashboard/FinanceOverview";
+import ManageBreakingNews from "../Pages/Dashboard/AdminDashboard/ManageBreakingNews";
+import ManageNotices from "../Pages/Dashboard/AdminDashboard/ManageNotices";
+import ManageNoticeCategories from "../Pages/Dashboard/AdminDashboard/ManageNoticeCategories";
+import ManageStudentReviews from "../Pages/Dashboard/AdminDashboard/ManageStudentReviews";
 
 export const router = createBrowserRouter([
   {
@@ -75,6 +79,10 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/appUpdate", element: <AppUpdate /> },
       { path: "/dashboard/admin/audioLibrary", element: <AudioLibraryAdmin /> },
       { path: "/dashboard/admin/finance", element: <FinanceOverview /> },
+      { path: "/dashboard/admin/breakingNews", element: <ManageBreakingNews /> },
+      { path: "/dashboard/admin/manageNotices", element: <ManageNotices /> },
+      { path: "/dashboard/admin/manageNoticeCategories", element: <ManageNoticeCategories /> },
+      { path: "/dashboard/admin/manageStudentReviews", element: <ManageStudentReviews /> },
     ],
   },
   {

@@ -4,8 +4,10 @@ export const ENROLLMENT_STORAGE_KEY = "mahad-enrollment-widget";
 export const defaultHomeSections = {
   hero: true,
   breakingNews: true,
+  noticeBoard: true,
   statsBanner: true,
   videos: true,
+  studentReviews: true,
   gallery: true,
 };
 

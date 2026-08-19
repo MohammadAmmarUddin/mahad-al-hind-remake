@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { API } from "../config/api";
 
 const SiteContentContext = createContext(null);
 
@@ -10,6 +11,7 @@ const fallbackContent = {
     courses: { en: "Courses", bn: "Courses" },
     certificateChecker: { en: "Certificate Checker", bn: "Certificate Checker" },
     admissionHelp: { en: "Admission Help", bn: "Admission Help" },
+    notice: { en: "Notice", bn: "Notice" },
     login: { en: "Login", bn: "Login" },
     signup: { en: "Signup", bn: "Signup" },
     profile: { en: "Profile", bn: "Profile" },
@@ -46,6 +48,31 @@ const fallbackContent = {
     studentTitle: { en: "Our Students Gallery", bn: "Our Students Gallery" },
     fareginTitle: { en: "Gallery", bn: "গ্যালারি" },
   },
+  noticeBoard: {
+    badge: { en: "Notice Board", bn: "Notice Board" },
+    title: { en: "Academic Notices & Announcements", bn: "একাডেমিক নোটিশ ও ঘোষণা" },
+    subtitle: {
+      en: "Stay updated with the latest notices, exam schedules, admission info, and important announcements.",
+      bn: "সর্বশেষ নোটিশ, পরীক্ষার সময়সূচী, ভর্তি তথ্য এবং গুরুত্বপূর্ণ ঘোষণা সম্পর্কে আপডেট থাকুন।",
+    },
+    searchPlaceholder: { en: "Search notices...", bn: "নোটিশ খুঁজুন..." },
+    search: { en: "Search", bn: "খুঁজুন" },
+    all: { en: "All", bn: "সব" },
+    noNotices: { en: "No notices found", bn: "কোনো নোটিশ পাওয়া যায়নি" },
+    noNoticesSub: {
+      en: "No notices have been posted yet. Check back soon!",
+      bn: "এখনো কোনো নোটিশ পোস্ট করা হয়নি। শীঘ্রই আবার দেখুন!",
+    },
+    noResults: {
+      en: "Try adjusting your search or filter criteria.",
+      bn: "আপনার অনুসন্ধান বা ফিল্টার মানদণ্ড সামঞ্জস্য করার চেষ্টা করুন।",
+    },
+    clearFilters: { en: "Clear all filters", bn: "সব ফিল্টার ম�ছুন" },
+    postedBy: { en: "Posted by", bn: "পোস্ট করেছেন" },
+    downloadNotice: { en: "Download Notice", bn: "নোটিশ ডাউনলোড করুন" },
+    loading: { en: "Loading notices...", bn: "নোটিশ লোড হচ্ছে..." },
+    error: { en: "Failed to load notices. Please try again later.", bn: "নোটিশ লোড করতে ব্যর্থ। অনুগ্রহ করে পরে আবার চেষ্টা করুন।" },
+  },
   enrollmentWidget: {
     isVisible: true,
     title: { en: "Enrollment Open", bn: "Enrollment Open" },
@@ -58,10 +85,21 @@ const fallbackContent = {
 };
 
 export const SiteContentProvider = ({ children }) => {
-  const [content] = useState(fallbackContent);
+  const [content, setContent] = useState(fallbackContent);
   const [language, setLanguageState] = useState(
     () => localStorage.getItem("site-language") || "en",
   );
+
+  useEffect(() => {
+    fetch(`${API}/api/site-content/public`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          setContent((prev) => ({ ...prev, ...res.data }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const setLanguage = (nextLanguage) => {
     if (!["en", "bn"].includes(nextLanguage)) {
@@ -71,6 +109,10 @@ export const SiteContentProvider = ({ children }) => {
     setLanguageState(nextLanguage);
     localStorage.setItem("site-language", nextLanguage);
   };
+
+  const updateContent = useCallback((updates) => {
+    setContent((prev) => ({ ...prev, ...updates }));
+  }, []);
 
   const translate = (group, key) => {
     const entry = content?.[group]?.[key];
@@ -88,9 +130,10 @@ export const SiteContentProvider = ({ children }) => {
       language,
       setLanguage,
       translate,
+      updateContent,
       theme: content?.theme || "current-default",
     }),
-    [content, language],
+    [content, language, updateContent],
   );
 
   return (

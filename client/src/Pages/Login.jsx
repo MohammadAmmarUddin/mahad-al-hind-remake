@@ -67,99 +67,100 @@ const Login = () => {
   };
 
   return (
-    <div className="mt-20">
-      <Link
-        to={"/"}
-        className="flex items-center gap-2 font-semibold lg:w-3/4 md:11/12 mx-auto text-xl pb-10"
-      >
-        <FaAngleLeft />
-        <p>Go back to home</p>
-      </Link>
+    <div className="py-10 sm:py-16 lg:py-20">
+      <div className="container-main mb-6 sm:mb-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-600 shadow-sm transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 hover:shadow-md active:scale-95"
+        >
+          <FaAngleLeft className="h-4 w-4" />
+          Home
+        </Link>
+      </div>
 
-      <h2 className="text-center text-4xl font-semibold text-primary pb-5">LOGIN</h2>
+      <h2 className="mb-6 sm:mb-8 text-center font-heading text-display-sm font-bold text-neutral-900">
+        Login
+      </h2>
 
       <motion.form
         onSubmit={handleSubmit}
-        whileHover={{
-          backgroundColor: "rgba(20, 184, 166, 0.1)", // teal-500 background on hover
-        }}
-        transition={{ duration: 0.3 }}
-        className="md:w-1/4 w-11/12 mx-auto border rounded-md p-10 bg-white shadow-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="card-base mx-auto max-w-sm p-5 sm:p-8"
       >
         {(error || loginError) && (
-          <p
-            className="text-red-500 mb-4"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(error || loginError),
-            }}
-          />
+          <div className="mb-4 rounded-lg bg-error/10 p-3 text-sm text-error">
+            <p
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(error || loginError),
+              }}
+            />
+          </div>
         )}
 
-        <div className="form-control">
-          <label>Email</label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-            required
-          />
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-base"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-base"
+              required
+            />
+            <Link to="/forgetPassword" className="mt-2 block text-xs font-medium text-primary-600 hover:text-primary-700">
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
-        <div className="form-control mt-4">
-          <label>Password</label>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-            required
-          />
-          <label className="mt-4">
-            <Link to="/forgetPassword">Forgot password?</Link>
-          </label>
-        </div>
-
-        <motion.button
+        <button
           type="submit"
-          whileTap={{ scale: 0.97 }}
-          whileHover={{ backgroundColor: "#059669", color: "#ffffff" }} // Emerald hover
-          className={`mt-6 py-3 rounded-lg w-full font-semibold transition-all duration-300 ${isLoading
-              ? "bg-emerald-300 cursor-not-allowed text-white"
-              : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg"
-            }`}
+          className={`btn-primary mt-6 w-full py-3 ${isLoading ? "pointer-events-none opacity-60" : ""}`}
           disabled={isLoading}
         >
           {isLoading ? "Logging in..." : "Login"}
-        </motion.button>
+        </button>
 
-
-        <p className="text-center pt-4">
-          Don't have an account?{" "}
-          <Link
-            to="/signup"
-            className="text-primary hover:text-[#0a4a6f] hover:underline transition-all"
-          >
+        <p className="mt-5 text-center text-body-sm text-neutral-500">
+          Don&apos;t have an account?{" "}
+          <Link to="/signup" className="font-semibold text-primary-600 hover:text-primary-700">
             Sign up
           </Link>
         </p>
 
-        <motion.button
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-neutral-200" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-3 text-neutral-400">or</span>
+          </div>
+        </div>
+
+        <button
           onClick={handleGoogleLogin}
           type="button"
-          whileTap={{ scale: 0.97 }}
-          whileHover={{
-            backgroundColor: "#0a4a6f",
-            color: "#ffffff",
-          }}
-          className="border border-primary py-3 rounded-md w-full mt-4 flex items-center justify-center transition-all"
+          className="btn-secondary w-full py-3"
           disabled={isLoading}
         >
-          <FcGoogle className="text-3xl mr-3" />
+          <FcGoogle className="text-xl" />
           <span>{isLoading ? "Logging in with Google..." : "Login with Google"}</span>
-        </motion.button>
+        </button>
       </motion.form>
     </div>
   );

@@ -9,112 +9,94 @@ import { resolveMediaUrl } from "../../../utils/media";
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
-  const [visibleDropdown, setVisibleDropdown] = useState(null); // To track the visible dropdown
-  const baseUrl = API;
+  const [visibleDropdown, setVisibleDropdown] = useState(null);
+
   const fetchCourses = () => {
-    const url = `${baseUrl}/api/course/getAllCourses`;
-    fetch(url)
+    fetch(`${API}/api/course/getAllCourses`)
       .then((res) => res.json())
-      .then((data) => {
-        setCourses(data);
-      })
-      .catch((error) => console.log(error));
+      .then(setCourses)
+      .catch(() => {});
   };
-  console.log("courses", courses);
+
   useEffect(() => {
     fetchCourses();
   }, []);
 
-  // Handle delete confirmation
   const handleDelete = (id) => {
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#125ca6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#047857",
+      cancelButtonColor: "#dc2626",
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`${baseUrl}/api/course/deleteCourse/${id}`, {
-          method: "DELETE",
-        })
+        fetch(`${API}/api/course/deleteCourse/${id}`, { method: "DELETE" })
           .then((res) => res.json())
           .then(() => {
-            Swal.fire({
-              title: "Deleted!",
-              text: "The course has been deleted.",
-              icon: "success",
-              confirmButtonColor: "#125ca6",
-            });
+            Swal.fire({ title: "Deleted!", text: "The course has been deleted.", icon: "success", confirmButtonColor: "#047857" });
             fetchCourses();
           })
           .catch(() => {
-            Swal.fire({
-              title: "Error!",
-              text: "There was an error deleting the course.",
-              icon: "error",
-              confirmButtonColor: "#125ca6",
-            });
+            Swal.fire({ title: "Error!", text: "There was an error deleting the course.", icon: "error", confirmButtonColor: "#047857" });
           });
       }
     });
   };
 
-  // Toggle the visibility of the dropdown
   const toggleDropdown = (id, e) => {
-    e.stopPropagation(); // Prevent the click from propagating to the card
-    if (visibleDropdown === id) {
-      setVisibleDropdown(null); // Close if already open
-    } else {
-      setVisibleDropdown(id); // Show the dropdown for the clicked course
-    }
-  };
-
-  // Close dropdown if clicked outside
-  const handleOutsideClick = (e) => {
-    if (!e.target.closest(".dropdown-container")) {
-      setVisibleDropdown(null); // Close dropdown when clicking outside
-    }
+    e.stopPropagation();
+    setVisibleDropdown(visibleDropdown === id ? null : id);
   };
 
   useEffect(() => {
-    document.addEventListener("click", handleOutsideClick);
-    return () => {
-      document.removeEventListener("click", handleOutsideClick);
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest(".dropdown-container")) setVisibleDropdown(null);
     };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
   }, []);
 
   return (
-    <div className="lg:p-6 pt-10">
-      <h1 className="text-3xl font-bold text-primary mb-8">Manage Courses</h1>
-      <div className="grid lg:grid-cols-5 md:grid-cols-3 grid-cols-1 gap-5 w-fit relative z-10">
+    <div className="p-4 pt-6 lg:p-6">
+      <h1 className="mb-6 font-heading text-display-sm font-bold text-neutral-900">Manage Courses</h1>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {courses?.map((course) => (
-          <div key={course._id} className="border rounded-xl relative ">
+          <div key={course._id} className="card-interactive overflow-hidden">
             <Link to={`/singleCourse/${course?._id}`}>
-              <div className="">
-                <img className="w-full object-cover rounded-xl" src={resolveMediaUrl(course?.banner)} alt={course?.title} />
+              <div className="relative aspect-video overflow-hidden bg-neutral-100">
+                <img
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                  src={resolveMediaUrl(course?.banner)}
+                  alt={course?.title}
+                />
               </div>
             </Link>
-            <div className="absolute right-4 top-4 dropdown-container">
-              <BsThreeDots
-                className="bg-primary border cursor-pointer text-white absolute right-0 p-1 text-3xl rounded-full"
-                onClick={(e) => toggleDropdown(course._id, e)} // Toggle dropdown on click
-              />
+            <div className="dropdown-container relative">
+              <button
+                onClick={(e) => toggleDropdown(course._id, e)}
+                className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-neutral-800"
+              >
+                <BsThreeDots className="text-lg" />
+              </button>
               {visibleDropdown === course._id && (
-                <div className="border bg-white w-52 p-3 rounded-md absolute right-0 top-10 z-10">
-                  <Link to={`/dashboard/admin/updateCourse/${course?._id}`} className="cursor-pointer flex gap-3 hover:bg-slate-200 p-2 rounded-md">
-                    <MdEdit className="tooltip p-1 text-2xl bg-primary text-white rounded-full" />
-                    <p>Update Course</p>
-                  </Link>
-                  <div
-                    onClick={() => handleDelete(course._id)}
-                    className="cursor-pointer flex gap-3 hover:bg-slate-200 p-2 rounded-md"
+                <div className="absolute right-3 top-12 z-20 w-48 rounded-xl border border-neutral-100 bg-white p-1.5 shadow-elevated">
+                  <Link
+                    to={`/dashboard/admin/updateCourse/${course?._id}`}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700"
                   >
-                    <RiDeleteBin5Line className="tooltip p-1 text-2xl bg-primary text-white rounded-full" />
-                    <p>Delete Course</p>
-                  </div>
+                    <MdEdit className="h-4 w-4" />
+                    Update Course
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(course._id)}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-red-50 hover:text-red-600"
+                  >
+                    <RiDeleteBin5Line className="h-4 w-4" />
+                    Delete Course
+                  </button>
                 </div>
               )}
             </div>

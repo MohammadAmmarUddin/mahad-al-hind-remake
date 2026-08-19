@@ -27,47 +27,52 @@ const AllCourses = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#047857]"></div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary-600" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="py-20 text-center text-sm text-gray-500">
-        <p>{error}</p>
-        <p className="mt-2">Showing an empty state because the backend is unavailable.</p>
+      <div className="section-padding text-center">
+        <div className="card-base mx-auto max-w-md p-8">
+          <p className="font-heading text-heading-lg font-semibold text-neutral-800">{error}</p>
+          <p className="mt-2 text-body-sm text-neutral-500">Showing an empty state because the backend is unavailable.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-11/12 mx-auto pb-20 mt-10">
-      <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">All Courses</h2>
-      <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6">
+    <div className="container-main pb-20 pt-10">
+      <h2 className="mb-8 text-center font-heading text-display-sm font-bold text-neutral-900">
+        All Courses
+      </h2>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {courses?.length > 0 ? (
           courses.map((course) => (
-            <div
+            <Link
               key={course._id}
-              className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border rounded-xl overflow-hidden"
+              to={`/singleCourse/${course?._id}`}
+              className="card-interactive overflow-hidden group"
             >
-              <Link to={`/singleCourse/${course?._id}`}>
+              <div className="relative aspect-video overflow-hidden bg-neutral-100">
                 <img
-                  className="w-full h-48 object-cover"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   src={resolveMediaUrl(course?.banner)}
                   alt={course?.title}
                 />
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    {course?.title}
-                  </h3>
-                </div>
-              </Link>
-            </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-heading text-heading-sm font-semibold text-neutral-800 line-clamp-2 transition-colors group-hover:text-primary-600">
+                  {course?.title}
+                </h3>
+              </div>
+            </Link>
           ))
         ) : (
-          <div className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+          <div className="col-span-full card-base border-dashed p-8 text-center text-body-sm text-neutral-500">
             No courses available right now.
           </div>
         )}

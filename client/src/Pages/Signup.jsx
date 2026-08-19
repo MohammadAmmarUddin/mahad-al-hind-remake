@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSignup } from "../hooks/useSignup";
 import { FaAngleLeft } from "react-icons/fa6";
 import { useState } from "react";
-import DOMPurify from "dompurify"; // For sanitizing inputs
+import DOMPurify from "dompurify";
 import { fileToDataUrl, validateFile } from "../utils/uploadMedia";
 
 const Signup = () => {
@@ -19,13 +19,9 @@ const Signup = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [preview, setPreview] = useState("");
 
-  // Function to sanitize all inputs
-  const sanitizeInput = (input) => {
-    return DOMPurify.sanitize(input.trim());  // Trim and sanitize to remove any unwanted content
-  };
+  const sanitizeInput = (input) => DOMPurify.sanitize(input.trim());
 
   const onSubmit = async (data) => {
-    // Sanitize all user inputs to prevent XSS attacks
     const { firstname, lastname, email, phone, password } = data;
 
     const sanitizedFirstname = sanitizeInput(firstname);
@@ -78,121 +74,128 @@ const Signup = () => {
   };
 
   const password = watch("password");
-  const retypePassword = watch("retypePassword");
 
   return (
-    <div className="pt-10 pb-24">
-      <Link
-        to={"/"}
-        className="flex items-center gap-2 font-semibold lg:w-3/4 md:11/12 mx-auto text-xl pb-10"
-      >
-        <FaAngleLeft />
-        <p>Go back to home</p>
-      </Link>
-      <h2 className="text-center text-4xl font-semibold text-primary pb-5">
-        SIGNUP
+    <div className="py-10 sm:py-16 lg:py-20">
+      <div className="container-main mb-6 sm:mb-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-600 shadow-sm transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 hover:shadow-md active:scale-95"
+        >
+          <FaAngleLeft className="h-4 w-4" />
+          Home
+        </Link>
+      </div>
+
+      <h2 className="mb-6 sm:mb-8 text-center font-heading text-display-sm font-bold text-neutral-900">
+        Signup
       </h2>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="md:w-1/4 w-11/12 mx-auto border rounded-md p-10"
+        className="card-base mx-auto max-w-sm p-5 sm:p-8"
       >
-        {/* Form Fields */}
-        <div className="form-control pb-4">
-          <label className="">First Name</label>
-          <input
-            type="text"
-            placeholder="Enter your first name"
-            {...register("firstname", { required: true })}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-          />
-        </div>
-        <div className="form-control pb-4">
-          <label className="">Last Name</label>
-          <input
-            type="text"
-            placeholder="Enter your last name"
-            {...register("lastname", { required: true })}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-          />
-        </div>
-        <div className="form-control pb-4">
-          <label className="">Email</label>
-          <input
-            type="email"
-            placeholder="email"
-            {...register("email", { required: true })}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-          />
-        </div>
-        <div className="form-control pb-4">
-          <label className="">Phone</label>
-          <input
-            type="text"
-            placeholder="phone"
-            {...register("phone", { required: true })}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-          />
-        </div>
-        {/* Image Upload Field */}
-        <div className="form-control w-full mb-4">
-          <div className="flex justify-between">
-            <label><span>Upload your img</span></label>
-            <p>{uploadPerc}%</p>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">First Name</label>
+              <input
+                type="text"
+                placeholder="First name"
+                {...register("firstname", { required: true })}
+                className="input-base"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Last Name</label>
+              <input
+                type="text"
+                placeholder="Last name"
+                {...register("lastname", { required: true })}
+                className="input-base"
+              />
+            </div>
           </div>
-          <input
-            type="file"
-            accept="image/*"
-            className="file-input w-full file-input-bordered"
-            onChange={handleImageChange}
-          />
-          {preview && (
-            <img
-              src={preview}
-              alt="Selected preview"
-              className="mt-3 h-40 w-40 rounded-xl object-cover"
+
+          <div>
+            <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Email</label>
+            <input
+              type="email"
+              placeholder="email"
+              {...register("email", { required: true })}
+              className="input-base"
             />
-          )}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Phone</label>
+            <input
+              type="text"
+              placeholder="phone"
+              {...register("phone", { required: true })}
+              className="input-base"
+            />
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-body-sm font-medium text-neutral-700">Profile Photo</label>
+              {uploadPerc > 0 && <span className="text-xs text-primary-600">{uploadPerc}%</span>}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="file-input file-input-bordered w-full rounded-lg text-sm"
+              onChange={handleImageChange}
+            />
+            {preview && (
+              <img
+                src={preview}
+                alt="Preview"
+                className="mt-3 h-20 w-20 rounded-xl object-cover ring-2 ring-primary-100"
+              />
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Password</label>
+            <input
+              type="password"
+              placeholder="password"
+              {...register("password", { required: true })}
+              className="input-base"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-body-sm font-medium text-neutral-700">Retype Password</label>
+            <input
+              type="password"
+              placeholder="Retype password"
+              {...register("retypePassword", {
+                required: true,
+                validate: (value) =>
+                  value === password || "Passwords do not match",
+              })}
+              className="input-base"
+            />
+            {errors.retypePassword && (
+              <p className="mt-1 text-xs text-error">
+                {errors.retypePassword.message}
+              </p>
+            )}
+          </div>
         </div>
-        <div className="form-control pb-4">
-          <label className="">Password</label>
-          <input
-            type="password"
-            placeholder="password"
-            {...register("password", { required: true })}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-          />
-        </div>
-        <div className="form-control pb-4">
-          <label className="">Retype Password</label>
-          <input
-            type="password"
-            placeholder="Retype password"
-            {...register("retypePassword", {
-              required: true,
-              validate: (value) =>
-                value === password || "Passwords do not match",
-            })}
-            className="input input-bordered focus:ring-2 focus:ring-primary focus:border-primary rounded-md border hover:border-primary transition-all"
-          />
-          {errors.retypePassword && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.retypePassword.message}
-            </p>
-          )}
-        </div>
-        <div className="form-control mt-10">
-          <button type="submit" className="bg-primary py-3 rounded-md text-white">
-            Signup
-          </button>
-        </div>
-        <p className="text-center pt-2">
+
+        <button type="submit" className="btn-primary mt-6 w-full py-3">
+          Signup
+        </button>
+
+        <p className="mt-5 text-center text-body-sm text-neutral-500">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-primary hover:text-white hover:underline hover:bg-primary px-1 py-0.5 rounded-md transition-all"
-          >
+          <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700">
             Login
-          </Link>{" "}
+          </Link>
         </p>
       </form>
     </div>

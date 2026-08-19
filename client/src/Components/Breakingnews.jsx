@@ -1,29 +1,39 @@
+import { useEffect, useState } from "react";
 import Marquee from "react-fast-marquee";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useSiteContent } from "../context/SiteContentContext";
+import { API } from "../config/api";
 
 const BreakingNews = () => {
-  const { translate } = useSiteContent();
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API}/api/breaking-news/public`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setItems(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!items.length) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       viewport={{ once: true }}
     >
-      <div className="relative mt-5 flex w-full flex-col items-center gap-4 text-primary md:flex-row">
-        <Link to="/form">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
+      <div className="flex w-full flex-col items-center gap-3 rounded-card border border-primary-100 bg-primary-50/50 px-4 py-3 text-primary-700 sm:flex-row sm:gap-4">
+        <Link to="/#notice-board">
+          <motion.span
+            whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            className="relative inline-flex items-center justify-center font-semibold text-white transition duration-300"
+            className="inline-flex shrink-0 items-center rounded-full bg-primary-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
           >
-            <span className="relative z-10 text-black">
-              {translate("breakingNews", "label")}
-            </span>
-          </motion.button>
+            Breaking News
+          </motion.span>
         </Link>
 
         <Marquee
@@ -32,9 +42,19 @@ const BreakingNews = () => {
           gradient
           gradientColor={[240, 253, 244]}
           gradientWidth={60}
-          className="gap-x-10 text-[15px] font-medium tracking-wide text-emerald-800 md:text-base"
+          className="text-sm font-medium tracking-wide text-primary-800 sm:text-body-sm"
         >
-          {translate("breakingNews", "message")}
+          {items.map((item, i) => (
+            <span key={item._id || i} className="mx-8">
+              {item.link ? (
+                <a href={item.link} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary-900">
+                  {item.text}
+                </a>
+              ) : (
+                item.text
+              )}
+            </span>
+          ))}
         </Marquee>
       </div>
     </motion.div>

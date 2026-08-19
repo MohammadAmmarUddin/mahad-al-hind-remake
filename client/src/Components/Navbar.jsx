@@ -5,6 +5,7 @@ import { CgProfile } from "react-icons/cg";
 import { IoSettingsOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
 import { HiMenu } from "react-icons/hi";
+import { FiX } from "react-icons/fi";
 import useAuthContext from "../hooks/useAuthContext";
 import { useLogout } from "../hooks/useLogout";
 import { useSiteContent } from "../context/SiteContentContext";
@@ -62,146 +63,147 @@ const Navbar = () => {
     { to: "/Admission-help", label: translate("navbar", "admissionHelp") },
   ].filter((item) => item.to);
 
-  const navLinkClasses =
-    "relative px-4 py-2 transition-all duration-300 ease-in-out rounded-md text-emerald-700 font-medium";
-
   return (
-    <motion.div
+    <motion.header
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed left-0 top-0 z-50 w-full bg-white shadow-md"
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="fixed left-0 top-0 z-50 w-full border-b border-neutral-100 bg-white/90 backdrop-blur-md shadow-navbar"
     >
-      <div className="mx-auto w-11/12 py-3 xl:w-3/4">
-        <div className="flex items-center justify-between gap-3 xl:gap-6">
-          <div className="w-16 shrink-0 sm:w-20">
-            <Link to="/">
-              <img src={logo} alt="Logo" className="w-full object-contain" />
+      <div className="container-main flex items-center justify-between gap-4 py-3">
+        {/* Logo */}
+        <Link to="/" className="flex shrink-0 items-center gap-3">
+          <img src={logo} alt="Ma'hadul Qira'at Al Hind" className="h-9 w-auto sm:h-10" />
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="hidden flex-1 items-center justify-center gap-1 min-[1180px]:flex">
+          {navItems.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="relative rounded-lg px-3.5 py-2 text-sm font-medium text-neutral-600 transition-all duration-200 hover:bg-primary-50 hover:text-primary-700"
+            >
+              {link.label}
             </Link>
-          </div>
+          ))}
+        </nav>
 
-          <div className="hidden flex-1 items-center justify-center gap-1 min-[1180px]:flex xl:gap-2">
-            {navItems.map((link) => (
-              <motion.div
-                key={link.to}
-                whileHover={{ backgroundColor: "rgba(5, 150, 105, 0.08)", scale: 1.03 }}
-                transition={{ duration: 0.2 }}
-                className="min-w-0 rounded-md"
-              >
-                <Link
-                  to={link.to}
-                  className={`${navLinkClasses} block max-w-[170px] truncate px-3 xl:max-w-none`}
-                >
-                  {link.label}
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="hidden items-center rounded-full border border-emerald-200 bg-emerald-50 p-1 md:flex">
-              <button
-                type="button"
-                onClick={() => setLanguage("en")}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                  language === "en" ? "bg-emerald-700 text-white" : "text-emerald-700"
-                }`}
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage("bn")}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                  language === "bn" ? "bg-emerald-700 text-white" : "text-emerald-700"
-                }`}
-              >
-                BN
-              </button>
-            </div>
-
+        {/* Right Side */}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {/* Language Toggle */}
+          <div className="hidden items-center rounded-full border border-neutral-200 bg-neutral-50 p-0.5 md:flex">
             <button
               type="button"
-              onClick={() => setIsMenuOpen((value) => !value)}
-              className="text-2xl text-emerald-700 min-[1180px]:hidden"
+              onClick={() => setLanguage("en")}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 ${
+                language === "en"
+                  ? "bg-primary-600 text-white shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-700"
+              }`}
             >
-              <HiMenu />
+              EN
             </button>
-
-            {user ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="hidden items-center rounded-full bg-emerald-600 px-3 py-1 min-[1180px]:flex"
-              >
-                <p className="hidden max-w-[140px] truncate text-white sm:block">
-                  {userData?.firstname || user?.user?.firstname || "User"}{" "}
-                  {userData?.lastname || user?.user?.lastname || ""}
-                </p>
-                <div className="dropdown dropdown-end ml-3">
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-                    <div className="h-9 w-9 rounded-full border-2 border-white">
-                      <img
-                        src={resolveMediaUrl(userData?.img || user?.user?.img)}
-                        alt="User"
-                        className="h-full w-full rounded-full object-cover"
-                      />
-                    </div>
-                  </div>
-                  <ul
-                    tabIndex={0}
-                    className="menu menu-sm dropdown-content mt-3 w-52 rounded-md border bg-white p-2 shadow z-[999]"
-                  >
-                    <li>
-                      <Link to="/profile" className="flex items-center gap-2">
-                        <CgProfile /> {translate("navbar", "profile")}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/settings" className="flex items-center gap-2">
-                        <IoSettingsOutline /> {translate("navbar", "settings")}
-                      </Link>
-                    </li>
-                    <li onClick={logout}>
-                      <span className="flex cursor-pointer items-center gap-2">
-                        <MdLogout /> {translate("navbar", "logout")}
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-              </motion.div>
-            ) : (
-              <div className="hidden items-center gap-3 font-semibold min-[1180px]:flex">
-                <Link to="/login" className="text-emerald-700 hover:underline">
-                  {translate("navbar", "login")}
-                </Link>
-                <Link
-                  to="/signup"
-                  className="rounded-md bg-emerald-600 px-3 py-1 text-white transition hover:bg-emerald-700"
-                >
-                  {translate("navbar", "signup")}
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-3 flex flex-col gap-3 rounded-md border bg-white p-4 font-medium text-emerald-700 shadow-md min-[1180px]:hidden"
+            <button
+              type="button"
+              onClick={() => setLanguage("bn")}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 ${
+                language === "bn"
+                  ? "bg-primary-600 text-white shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-700"
+              }`}
             >
-              <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm">
-                <span>{translate("navbar", "language")}</span>
-                <div className="flex items-center rounded-full border border-emerald-200 bg-white p-1">
+              BN
+            </button>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-neutral-100 min-[1180px]:hidden"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMenuOpen ? <FiX className="h-5 w-5" /> : <HiMenu className="h-5 w-5" />}
+          </button>
+
+          {/* User / Auth */}
+          {user ? (
+            <div className="hidden items-center gap-2 min-[1180px]:flex">
+              <span className="max-w-[140px] truncate text-sm font-medium text-neutral-700">
+                {userData?.firstname || user?.user?.firstname || "User"}{" "}
+                {userData?.lastname || user?.user?.lastname || ""}
+              </span>
+              <div className="dropdown dropdown-end">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-primary-200 transition-all duration-200 hover:border-primary-400"
+                >
+                  <img
+                    src={resolveMediaUrl(userData?.img || user?.user?.img)}
+                    alt="User"
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="menu menu-sm dropdown-content mt-3 w-52 rounded-xl border border-neutral-100 bg-white p-2 shadow-elevated z-[999]"
+                >
+                  <li>
+                    <Link to="/profile" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700">
+                      <CgProfile className="h-4 w-4" /> {translate("navbar", "profile")}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/settings" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700">
+                      <IoSettingsOutline className="h-4 w-4" /> {translate("navbar", "settings")}
+                    </Link>
+                  </li>
+                  <li>
+                    <button onClick={logout} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-red-50 hover:text-red-600">
+                      <MdLogout className="h-4 w-4" /> {translate("navbar", "logout")}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="hidden items-center gap-2 min-[1180px]:flex">
+              <Link
+                to="/login"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-800"
+              >
+                {translate("navbar", "login")}
+              </Link>
+              <Link to="/signup" className="btn-primary">
+                {translate("navbar", "signup")}
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-neutral-100 bg-white min-[1180px]:hidden"
+          >
+            <div className="container-main space-y-1 py-4">
+              {/* Language */}
+              <div className="flex items-center justify-between rounded-xl bg-neutral-50 px-4 py-3 mb-2">
+                <span className="text-sm font-medium text-neutral-600">{translate("navbar", "language")}</span>
+                <div className="flex items-center rounded-full border border-neutral-200 bg-white p-0.5">
                   <button
                     type="button"
                     onClick={() => setLanguage("en")}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      language === "en" ? "bg-emerald-700 text-white" : ""
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 ${
+                      language === "en" ? "bg-primary-600 text-white" : "text-neutral-500"
                     }`}
                   >
                     EN
@@ -209,8 +211,8 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() => setLanguage("bn")}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      language === "bn" ? "bg-emerald-700 text-white" : ""
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 ${
+                      language === "bn" ? "bg-primary-600 text-white" : "text-neutral-500"
                     }`}
                   >
                     BN
@@ -219,34 +221,39 @@ const Navbar = () => {
               </div>
 
               {navItems.map((item) => (
-                <Link key={item.to} to={item.to} onClick={() => setIsMenuOpen(false)}>
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700"
+                >
                   {item.label}
                 </Link>
               ))}
 
               {!user && (
-                <div className="mt-2 flex flex-col gap-2">
+                <div className="border-t border-neutral-100 pt-3 mt-2 space-y-2">
                   <Link
                     to="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="text-emerald-700 hover:underline"
+                    className="block rounded-lg px-4 py-2.5 text-center text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100"
                   >
                     {translate("navbar", "login")}
                   </Link>
                   <Link
                     to="/signup"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-md bg-emerald-600 px-3 py-1 text-center text-white transition hover:bg-emerald-700"
+                    className="btn-primary w-full"
                   >
                     {translate("navbar", "signup")}
                   </Link>
                 </div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
   );
 };
 

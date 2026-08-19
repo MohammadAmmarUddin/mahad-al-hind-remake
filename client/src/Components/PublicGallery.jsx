@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, FreeMode } from "swiper/modules";
 import { fetchGalleryItems } from "../utils/galleryApi";
 import { resolveMediaUrl } from "../utils/media";
 import { useSiteContent } from "../context/SiteContentContext";
@@ -15,48 +17,62 @@ const PublicGallery = () => {
   const items = data?.data || [];
 
   return (
-    <section className="overflow-hidden bg-gradient-to-br from-[#f0f9ff] via-white to-[#e0f2fe] py-16 sm:py-20">
-      <motion.h2
-        initial={{ opacity: 0, y: -30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="mb-10 text-center text-2xl font-bold text-emerald-800 sm:text-3xl md:text-4xl"
-      >
-        {translate("gallerySection", "fareginTitle")}
-      </motion.h2>
+    <section className="overflow-hidden bg-gradient-to-br from-accent-50 via-white to-accent-100/30 section-padding">
+      <div className="container-main">
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="mb-10 text-center font-heading text-display-sm font-bold text-neutral-900 sm:text-display-md"
+        >
+          {translate("gallerySection", "fareginTitle")}
+        </motion.h2>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
           </div>
         ) : items.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <Swiper
+            modules={[Autoplay, FreeMode]}
+            freeMode={{ enabled: true, momentum: false }}
+            autoplay={{ delay: 0, disableOnInteraction: false }}
+            speed={3000}
+            loop={true}
+            slidesPerView={2}
+            spaceBetween={16}
+            breakpoints={{
+              640: { slidesPerView: 3, spaceBetween: 20 },
+              768: { slidesPerView: 4, spaceBetween: 20 },
+              1024: { slidesPerView: 5, spaceBetween: 24 },
+            }}
+            className="gallery-swiper"
+          >
             {items.map((item) => (
-              <div
-                key={item._id}
-                className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-500 hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
-                  <img
-                    src={resolveMediaUrl(item.imageUrl)}
-                    alt={item.title || item.name || "Gallery image"}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
-                {(item.title || item.name) && (
-                  <div className="px-4 py-3 text-center">
-                    <h3 className="line-clamp-1 text-sm font-semibold text-slate-800">
-                      {item.title || item.name}
-                    </h3>
+              <SwiperSlide key={item._id}>
+                <div className="card-interactive overflow-hidden">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                    <img
+                      src={resolveMediaUrl(item.imageUrl)}
+                      alt={item.title || item.name || "Gallery image"}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                   </div>
-                )}
-              </div>
+                  {(item.title || item.name) && (
+                    <div className="px-4 py-3 text-center">
+                      <h3 className="line-clamp-1 text-body-sm font-semibold text-neutral-800">
+                        {item.title || item.name}
+                      </h3>
+                    </div>
+                  )}
+                </div>
+              </SwiperSlide>
             ))}
-          </div>
+          </Swiper>
         ) : (
-          <div className="rounded-2xl border border-dashed border-sky-200 bg-white/70 p-8 text-center text-sm text-slate-600">
+          <div className="card-base border-dashed p-8 text-center text-body-sm text-neutral-500">
             No gallery items available right now.
           </div>
         )}

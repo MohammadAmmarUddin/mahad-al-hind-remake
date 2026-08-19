@@ -2,42 +2,42 @@ import Bkash from "./Bkash";
 
 const AdmissionHelp = () => {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 text-center">
+    <div className="container-narrow px-4 py-12 text-center">
       {/* Main Title */}
-      <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8 leading-snug">
-        📌 <span className="text-green-600">ভর্তি প্রক্রিয়া</span>
+      <h2 className="mb-8 font-heading text-display-sm font-extrabold leading-snug text-neutral-900 sm:text-display-md">
+        <span className="text-primary-600">ভর্তি প্রক্রিয়া</span>
       </h2>
 
       {/* Instructions Section */}
-      <div className="space-y-6 text-gray-700">
+      <div className="space-y-6 text-left text-neutral-700 sm:text-center">
         {/* Step 1 */}
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            ✅ কিভাবে ফি প্রদান করবেন?
+          <h3 className="mb-2 font-heading text-heading-lg font-semibold text-neutral-900">
+            কিভাবে ফি প্রদান করবেন?
           </h3>
-          <p className="text-base md:text-lg leading-relaxed">
+          <p className="text-body leading-relaxed sm:text-body-sm">
             ভর্তি হতে চাইলে আগে নির্ধারিত পেমেন্ট মাধ্যমের মাধ্যমে ফি প্রদান
             করতে হবে।
           </p>
         </div>
 
         {/* Bangladesh */}
-        <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded text-left md:text-center">
-          <p className="text-lg font-bold text-green-700 mb-2">
-            🇧🇩 বাংলাদেশের শিক্ষার্থীদের জন্য
+        <div className="rounded-card border-l-4 border-success bg-success/5 p-5 text-left sm:text-center">
+          <p className="mb-2 font-heading text-lg font-bold text-success">
+            বাংলাদেশের শিক্ষার্থীদের জন্য
           </p>
-          <p className="text-base">
+          <p className="text-body">
             বিকাশ / নগদ এর মাধ্যমে পেমেন্ট করে, পেমেন্টের পর নিচের নাম্বারে তথ্য
             পাঠাতে হবে।
           </p>
         </div>
 
         {/* India */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-left md:text-center">
-          <p className="text-lg font-bold text-blue-700 mb-2">
-            🇮🇳 ভারতের শিক্ষার্থীদের জন্য
+        <div className="rounded-card border-l-4 border-accent-500 bg-accent-50 p-5 text-left sm:text-center">
+          <p className="mb-2 font-heading text-lg font-bold text-accent-700">
+            ভারতের শিক্ষার্থীদের জন্য
           </p>
-          <p className="text-base">
+          <p className="text-body">
             গুগল পে / ফোন পে এর মাধ্যমে পেমেন্ট করে, পেমেন্টের পর একইভাবে তথ্য
             পাঠাতে হবে।
           </p>
@@ -45,20 +45,20 @@ const AdmissionHelp = () => {
 
         {/* Info after payment */}
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            📲 পেমেন্টের পর যে তথ্যগুলো পাঠাতে হবে
+          <h3 className="mb-3 font-heading text-heading-lg font-semibold text-neutral-900">
+            পেমেন্টের পর যে তথ্যগুলো পাঠাতে হবে
           </h3>
-          <ul className="list-decimal list-inside space-y-1 text-left md:text-center mx-auto inline-block text-base">
-            <li>যে নাম্বার থেকে টাকা পাঠিয়েছেন সেটি</li>
+          <ol className="mx-auto inline-block list-decimal space-y-1.5 text-left text-body sm:text-center">
+            <li>যে নাম্বার থেকে টাকা পাঠিয়েছেন সেটি</li>
             <li>পেমেন্ট আইডি / ট্রান্সেকশন নাম্বার</li>
-            <li>বাঙ্গালদেশিদের জন্য ১৫০০ টাকা </li>
-            <li>ভারতীয়দের জন্য ১২০০ রুপি </li>
-          </ul>
+            <li>বাঙ্গালদের জন্য ১৫০০ টাকা</li>
+            <li>ভারতীয়দের জন্য ১২০০ রুপি</li>
+          </ol>
         </div>
       </div>
 
       {/* Divider */}
-      <hr className="my-10 border-gray-300" />
+      <hr className="my-12 border-neutral-200" />
 
       {/* Payment Form */}
       <Bkash />

@@ -19,6 +19,11 @@ const sectionMeta = [
     description: "Headline strip displayed at the top of the home page.",
   },
   {
+    key: "noticeBoard",
+    title: "Notice Board",
+    description: "Academic notices and announcements section on the home page.",
+  },
+  {
     key: "statsBanner",
     title: "Stats Banner",
     description: "Community numbers and highlights section.",
@@ -27,6 +32,11 @@ const sectionMeta = [
     key: "videos",
     title: "Video Section",
     description: "Featured videos shown on the home page.",
+  },
+  {
+    key: "studentReviews",
+    title: "Student Video Reviews",
+    description: "Student testimonial videos section on the home page.",
   },
   {
     key: "gallery",

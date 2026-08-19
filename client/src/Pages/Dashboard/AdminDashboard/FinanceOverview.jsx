@@ -197,26 +197,35 @@ const FinanceDashboard = ({ token, authHeaders }) => {
             <h3 className="text-emerald-100 text-sm font-medium">Total Income</h3>
             <FaArrowUp className="text-emerald-200" />
           </div>
-          <p className="text-3xl font-bold">{summary?.totals?.income?.toLocaleString() || 0}</p>
-          <p className="text-emerald-200 text-sm mt-1">This month</p>
+          <p className="text-3xl font-bold">৳{summary?.totals?.income?.toLocaleString() || 0}</p>
+          <p className="text-emerald-200 text-sm mt-1">This month (in BDT)</p>
         </div>
         <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6 text-white">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-red-100 text-sm font-medium">Total Expense</h3>
             <FaArrowDown className="text-red-200" />
           </div>
-          <p className="text-3xl font-bold">{summary?.totals?.expense?.toLocaleString() || 0}</p>
-          <p className="text-red-200 text-sm mt-1">This month</p>
+          <p className="text-3xl font-bold">৳{summary?.totals?.expense?.toLocaleString() || 0}</p>
+          <p className="text-red-200 text-sm mt-1">This month (in BDT)</p>
         </div>
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 text-white">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-blue-100 text-sm font-medium">Net Balance</h3>
+            <h3 className="text-blue-100 text-sm font-medium">Net Income</h3>
             <FaBalanceScale className="text-blue-200" />
           </div>
-          <p className="text-3xl font-bold">{summary?.totals?.balance?.toLocaleString() || 0}</p>
-          <p className="text-blue-200 text-sm mt-1">This month</p>
+          <p className="text-3xl font-bold">৳{summary?.totals?.balance?.toLocaleString() || 0}</p>
+          <p className="text-blue-200 text-sm mt-1">This month (in BDT)</p>
         </div>
       </div>
+
+      {/* Exchange Rates */}
+      {summary?.totals?.rates && (
+        <div className="bg-white rounded-lg border p-4 mb-8 flex items-center gap-6 text-sm text-gray-600">
+          <span className="font-semibold text-gray-700 flex items-center gap-1"><TbCurrencyTaka /> Exchange rates (to BDT):</span>
+          <span>1 USD = ৳{summary.totals.rates.USD}</span>
+          <span>1 INR = ৳{summary.totals.rates.INR}</span>
+        </div>
+      )}
 
       {/* Currency Breakdown */}
       <div className="grid gap-6 md:grid-cols-3 mb-8">

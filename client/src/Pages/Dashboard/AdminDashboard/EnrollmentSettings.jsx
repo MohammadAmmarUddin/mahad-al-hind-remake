@@ -1,31 +1,91 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaSave } from "react-icons/fa";
-import {
-  ENROLLMENT_STORAGE_KEY,
-  defaultEnrollmentWidget,
-  readLocalJson,
-  writeLocalJson,
-} from "../../../config/localContent";
+import { API } from "../../../config/api";
+import { getStoredAuthToken } from "../../../utils/authToken";
 
 const EnrollmentSettings = () => {
-  const [form, setForm] = useState(
-    () => readLocalJson(ENROLLMENT_STORAGE_KEY, defaultEnrollmentWidget),
-  );
+  const [form, setForm] = useState({
+    isVisible: true,
+    titleEn: "",
+    titleBn: "",
+    startLabelEn: "",
+    startLabelBn: "",
+    endLabelEn: "",
+    endLabelBn: "",
+    reopenLabelEn: "",
+    reopenLabelBn: "",
+    startDate: "",
+    endDate: "",
+  });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const authHeaders = () => {
+    const token = getStoredAuthToken();
+    return token
+      ? { Authorization: `Bearer ${token}`, "x-access-token": token, "Content-Type": "application/json" }
+      : { "Content-Type": "application/json" };
+  };
+
+  useEffect(() => {
+    fetch(`${API}/api/site-content/public`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data?.enrollmentWidget) {
+          const w = res.data.enrollmentWidget;
+          setForm({
+            isVisible: w.isVisible ?? true,
+            titleEn: w.title?.en ?? "",
+            titleBn: w.title?.bn ?? "",
+            startLabelEn: w.startLabel?.en ?? "",
+            startLabelBn: w.startLabel?.bn ?? "",
+            endLabelEn: w.endLabel?.en ?? "",
+            endLabelBn: w.endLabel?.bn ?? "",
+            reopenLabelEn: w.reopenLabel?.en ?? "",
+            reopenLabelBn: w.reopenLabel?.bn ?? "",
+            startDate: w.startDate ?? "",
+            endDate: w.endDate ?? "",
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setMessage("");
 
+    const payload = {
+      enrollmentWidget: {
+        isVisible: form.isVisible,
+        title: { en: form.titleEn, bn: form.titleBn },
+        startLabel: { en: form.startLabelEn, bn: form.startLabelBn },
+        endLabel: { en: form.endLabelEn, bn: form.endLabelBn },
+        reopenLabel: { en: form.reopenLabelEn, bn: form.reopenLabelBn },
+        startDate: form.startDate,
+        endDate: form.endDate,
+      },
+    };
+
     try {
-      writeLocalJson(ENROLLMENT_STORAGE_KEY, form);
-      setMessage("Enrollment settings saved locally.");
+      const res = await fetch(`${API}/api/site-content/public`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        setMessage("Enrollment settings saved to database.");
+      } else {
+        const data = await res.json();
+        setMessage(data.message || "Failed to save.");
+      }
     } catch {
       setMessage("Failed to save enrollment settings.");
     } finally {
@@ -33,18 +93,38 @@ const EnrollmentSettings = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div className="h-8 w-48 animate-pulse rounded bg-slate-200" />
+            <div className="mt-2 h-4 w-96 animate-pulse rounded bg-slate-100" />
+          </div>
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <h1 className="text-3xl font-bold text-slate-900">Enrollment Notice</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Control the enrollment widget locally without depending on the backend.
+            Control the enrollment widget shown on the website and mobile app. Changes are saved to the database.
           </p>
         </div>
 
         {message && (
-          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className={`rounded-xl px-4 py-3 text-sm ${message.includes("Failed") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
             {message}
           </div>
         )}
@@ -140,7 +220,7 @@ const EnrollmentSettings = () => {
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <FaSave />
-                {saving ? "Saving..." : "Save locally"}
+                {saving ? "Saving..." : "Save to database"}
               </button>
             </div>
           </div>

@@ -2,23 +2,21 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaArrowRight, FaTimesCircle } from "react-icons/fa";
 import { useSiteContent } from "../context/SiteContentContext";
-import {
-  ENROLLMENT_STORAGE_KEY,
-  defaultEnrollmentWidget,
-  readLocalJson,
-} from "../config/localContent";
 
 const VortiCholche = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const { language } = useSiteContent();
-  const widget = readLocalJson(ENROLLMENT_STORAGE_KEY, defaultEnrollmentWidget);
+  const { content, language } = useSiteContent();
+  const widget = content?.enrollmentWidget;
 
   if (!widget?.isVisible) {
     return null;
   }
 
-  const pick = (field) =>
-    widget?.[`${field}${language === "bn" ? "Bn" : "En"}`] || widget?.[`${field}En`] || "";
+  const pick = (field) => {
+    const entry = widget?.[field];
+    if (!entry) return "";
+    return entry[language] || entry.en || "";
+  };
 
   return (
     <div className="fixed bottom-10 left-6 z-50 hidden md:block">

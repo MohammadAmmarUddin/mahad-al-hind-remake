@@ -17,7 +17,7 @@ function Main() {
   return (
     <div className="relative">
       {shouldRenderHeaderFooter && (
-        <div className="pb-[100px]">
+        <div className="pb-[72px]">
           <Navbar />
         </div>
       )}

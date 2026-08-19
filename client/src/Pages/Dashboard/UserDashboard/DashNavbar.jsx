@@ -1,71 +1,56 @@
 import useAuthContext from "../../../hooks/useAuthContext";
 import { useLogout } from "../../../hooks/useLogout";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
 import { resolveMediaUrl } from "../../../utils/media";
 import NotificationBell from "../../../Components/NotificationBell";
+import { FiLogOut, FiSettings, FiUser } from "react-icons/fi";
 
 const DashNavbar = () => {
   const { user } = useAuthContext();
   const { logout } = useLogout();
 
-  const handleLogout = () => {
-    logout();
-  };
-
-  useEffect(() => {
-    console.log("Navbar loaded. You can trigger API calls here if needed.");
-  }, []);
-
   return (
-    <div
-      className="w-full h-16 flex items-center justify-between px-4 shadow z-50"
-      style={{
-        background: "linear-gradient(90deg, #047857, #ecfccb)",
-      }}
-    >
-      <p className="text-xl font-bold text-white drop-shadow">
+    <div className="flex h-14 w-full items-center justify-between border-b border-primary-100 bg-gradient-to-r from-primary-600 to-primary-500 px-4 shadow-sm">
+      <p className="text-sm font-semibold text-white drop-shadow sm:text-base">
         Welcome {user?.user?.firstname + " " + user?.user?.lastname}
       </p>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <NotificationBell />
 
-        {/* Profile */}
         <div className="dropdown dropdown-end">
           <div
             tabIndex={0}
             role="button"
-            className="btn btn-ghost btn-circle avatar hover:bg-[#047857] transition"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-white/40 transition-all duration-200 hover:border-white/70"
           >
-            <div className="w-10 rounded-full">
-              <img
-                alt="User"
-                src={resolveMediaUrl(user?.user?.img)}
-                className="object-cover w-full h-full"
-              />
-            </div>
+            <img
+              alt="User"
+              src={resolveMediaUrl(user?.user?.img)}
+              className="h-full w-full object-cover"
+            />
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content mt-3 w-52 p-2 shadow bg-white rounded-box z-[1]"
+            className="menu menu-sm dropdown-content mt-3 w-52 rounded-xl border border-neutral-100 bg-white p-2 shadow-elevated z-[1]"
           >
             <li>
-              <Link
-                to="/profile"
-                className="justify-between hover:bg-[#ecfccb] rounded"
-              >
+              <Link to="/profile" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700">
+                <FiUser className="h-4 w-4" />
                 Profile
-                <span className="badge bg-[#047857] text-white">New</span>
               </Link>
             </li>
             <li>
-              <a className="hover:bg-[#ecfccb] rounded">Settings</a>
+              <a className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700">
+                <FiSettings className="h-4 w-4" />
+                Settings
+              </a>
             </li>
             <li>
-              <a onClick={handleLogout} className="hover:bg-[#ecfccb] rounded">
+              <button onClick={logout} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-red-50 hover:text-red-600">
+                <FiLogOut className="h-4 w-4" />
                 Logout
-              </a>
+              </button>
             </li>
           </ul>
         </div>

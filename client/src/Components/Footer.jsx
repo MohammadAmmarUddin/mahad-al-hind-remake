@@ -18,8 +18,8 @@ const fadeInUp = {
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-br from-white via-lime-50 to-emerald-100 mt-32 px-6 py-12 text-gray-800 font-medium overflow-hidden">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+    <footer className="mt-12 sm:mt-16 lg:mt-24 overflow-hidden bg-gradient-to-br from-white via-primary-50/40 to-primary-100/30 px-4 sm:px-6 pt-12 sm:pt-16 pb-8 font-medium text-neutral-800">
+      <div className="container-main grid grid-cols-1 gap-10 md:grid-cols-4 md:gap-12">
         {/* Logo & About */}
         <motion.div
           custom={0.1}
@@ -29,9 +29,9 @@ const Footer = () => {
           variants={fadeInUp}
           className="space-y-4 text-center md:text-left"
         >
-          <img src={logo} className="w-20 mx-auto md:mx-0" alt="Logo" />
-          <h3 className="text-lg font-bold">Mahadul Qira'at Al Hind</h3>
-          <p className="text-sm text-gray-600">Providing Knowledge Since 2022</p>
+          <img src={logo} className="mx-auto h-16 w-auto md:mx-0" alt="Logo" />
+          <h3 className="font-heading text-lg font-bold text-neutral-900">Mahadul Qira'at Al Hind</h3>
+          <p className="text-sm leading-relaxed text-neutral-500">Providing Knowledge Since 2022</p>
         </motion.div>
 
         {/* Services */}
@@ -41,14 +41,17 @@ const Footer = () => {
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeInUp}
-          className="space-y-3 text-center md:text-left"
+          className="space-y-4 text-center md:text-left"
         >
-          <h4 className="text-xl font-semibold text-primary">Services</h4>
-          <ul className="space-y-2 text-gray-700 text-sm">
-            <li><Link to="#" className="hover:text-primary">Quran Course</Link></li>
-            <li><Link to="#" className="hover:text-primary">Maqamat</Link></li>
-            <li><Link to="#" className="hover:text-primary">Rewayat</Link></li>
-            <li><Link to="#" className="hover:text-primary">Higher Qira'at Course</Link></li>
+          <h4 className="font-heading text-base font-semibold text-primary-700">Services</h4>
+          <ul className="space-y-2.5 text-sm">
+            {["Quran Course", "Maqamat", "Rewayat", "Higher Qira'at Course"].map((item) => (
+              <li key={item}>
+                <Link to="#" className="text-neutral-500 transition-colors duration-200 hover:text-primary-600">
+                  {item}
+                </Link>
+              </li>
+            ))}
           </ul>
         </motion.div>
 
@@ -59,12 +62,17 @@ const Footer = () => {
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeInUp}
-          className="space-y-3 text-center md:text-left"
+          className="space-y-4 text-center md:text-left"
         >
-          <h4 className="text-xl font-semibold text-primary">Our Academy</h4>
-          <ul className="space-y-2 text-gray-700 text-sm">
-            <li><Link to="#" className="hover:text-primary">About Us</Link></li>
-            <li><Link to="#" className="hover:text-primary">Contact</Link></li>
+          <h4 className="font-heading text-base font-semibold text-primary-700">Our Academy</h4>
+          <ul className="space-y-2.5 text-sm">
+            {["About Us", "Contact"].map((item) => (
+              <li key={item}>
+                <Link to="#" className="text-neutral-500 transition-colors duration-200 hover:text-primary-600">
+                  {item}
+                </Link>
+              </li>
+            ))}
           </ul>
         </motion.div>
 
@@ -77,23 +85,36 @@ const Footer = () => {
           variants={fadeInUp}
           className="space-y-4 text-center md:text-left"
         >
-          <h4 className="text-xl font-semibold text-primary">Stay Connected</h4>
-          <p className="text-sm text-gray-600">
+          <h4 className="font-heading text-base font-semibold text-primary-700">Stay Connected</h4>
+          <p className="text-sm leading-relaxed text-neutral-500">
             Follow us on social media and subscribe for updates.
           </p>
-          <div className="flex justify-center md:justify-start gap-5 text-2xl text-primary">
-            <Link to="https://t.me/+919365262648" target="_blank"><FaTelegramPlane /></Link>
-            <Link to="https://api.whatsapp.com/send?phone=919365262648" target="_blank"><FaWhatsapp /></Link>
-            <Link to="https://www.facebook.com/profile.php?id=61552346161606" target="_blank"><FaFacebookF /></Link>
+          <div className="flex justify-center gap-3 md:justify-start">
+            {[
+              { icon: FaTelegramPlane, href: "https://t.me/+919365262648", label: "Telegram" },
+              { icon: FaWhatsapp, href: "https://api.whatsapp.com/send?phone=919365262648", label: "WhatsApp" },
+              { icon: FaFacebookF, href: "https://www.facebook.com/profile.php?id=61552346161606", label: "Facebook" },
+            ].map(({ icon: Icon, href, label }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-primary-200 bg-white text-primary-600 shadow-sm transition-all duration-200 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 hover:shadow-md"
+              >
+                <Icon className="h-4 w-4" />
+              </a>
+            ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <input
               type="email"
               placeholder="Your Email"
-              className="input input-bordered bg-white text-gray-700 w-full sm:w-auto flex-grow"
+              className="input-base flex-1"
             />
-            <button className="btn bg-primary text-white hover:bg-emerald-600 transition-all rounded-md">
+            <button className="btn-primary">
               Subscribe
             </button>
           </div>
@@ -102,13 +123,13 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ delay: 0.5, duration: 0.6 }}
-        className="text-center pt-10 mt-10 border-t border-gray-300 text-sm text-gray-600"
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="mt-12 border-t border-neutral-200 pt-8 text-center text-sm text-neutral-400"
       >
-        © {new Date().getFullYear()} Mahad Al Hind. All rights reserved.
+        &copy; {new Date().getFullYear()} Mahad Al Hind. All rights reserved.
       </motion.div>
     </footer>
   );

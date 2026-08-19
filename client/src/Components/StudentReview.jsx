@@ -1,11 +1,7 @@
-// Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import { motion } from "framer-motion";
-// Import required modules
 import { Navigation, Autoplay } from "swiper/modules";
 import TestimonialCard from "./StudentReviewCard.jsx";
 import { useQuery } from "@tanstack/react-query";
@@ -23,26 +19,29 @@ const StudentReview = () => {
   });
 
   return (
-    <div className="bg-gradient-to-br from-[#ecfdf5] via-[#a7f3d0] to-[#07945c] py-16">
-      <motion.h2
-        initial={{ opacity: 0, y: -30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-2xl md:text-4xl font-bold text-center text-emerald-800 mb-10"
-      >
-        Reviews of Our Students
-      </motion.h2>
-      <div className="max-w-6xl mx-auto px-4">
+    <section className="overflow-hidden bg-gradient-to-br from-primary-50 via-primary-100/40 to-primary-600 section-padding">
+      <div className="container-main">
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="mb-10 text-center font-heading text-display-sm font-bold text-neutral-900 sm:text-display-md"
+        >
+          Reviews of Our Students
+        </motion.h2>
+
         <Swiper
           navigation={true}
           loop={true}
           autoplay={{ delay: 3000 }}
           modules={[Navigation, Autoplay]}
-          className="mySwiper"
+          className="review-swiper"
           breakpoints={{
+            0: { slidesPerView: 1, spaceBetween: 16 },
             640: { slidesPerView: 1, spaceBetween: 20 },
-            768: { slidesPerView: 2, spaceBetween: 30 },
-            1024: { slidesPerView: 3, spaceBetween: 40 },
+            768: { slidesPerView: 2, spaceBetween: 24 },
+            1024: { slidesPerView: 3, spaceBetween: 32 },
           }}
         >
           {datas.map((item) => (
@@ -52,7 +51,7 @@ const StudentReview = () => {
           ))}
         </Swiper>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -27,8 +27,6 @@ const Profile = () => {
       .catch((error) => console.log(error));
   };
 
-  console.log("enrolledCourses", enrolledCourses); // enrolledCourses.map(courses=> courses.students.map(student=> if(studentsId===user.user._id && isCourseComplete===true)))
-
   useEffect(() => {
     if (user?.user?._id) {
       fetchSingleUser();
@@ -36,72 +34,71 @@ const Profile = () => {
     }
   }, [user?.user?._id]);
 
-
   if (!userData) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#047857]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 sm:h-32 sm:w-32 border-b-2 border-[#047857]"></div>
       </div>
     );
   }
   return (
-    <div className="lg:w-3/4 w-11/12 mx-auto mt-10">
-      <div className="grid md:grid-cols-7 grid-cols-1 gap-8">
-        <div className="md:col-span-3 lg:col-span-2 col-span-7">
+    <div className="w-11/12 lg:w-3/4 mx-auto mt-6 sm:mt-10 overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-6 sm:gap-8">
+        <div className="md:col-span-3 lg:col-span-2">
           <img
-            className="h-[400px] rounded-md w-full object-cover object-top border"
+            className="h-48 sm:h-64 md:h-[350px] lg:h-[400px] rounded-md w-full object-cover object-top border"
             src={resolveMediaUrl(userData.img && userData.img)}
             alt=""
           />
           <div className="block md:hidden">
-            <div className="flex justify-between items-center pt-5">
-              <h3 className="text-3xl font-semibold">
+            <div className="flex justify-between items-center pt-4">
+              <h3 className="text-xl sm:text-2xl font-semibold break-words">
                 {userData.firstname} {userData.lastname}
               </h3>
               <Link to={"/updateProfile"}>
-                <MdEdit className="text-3xl bg-primary text-white rounded-full p-1" />
+                <MdEdit className="text-2xl sm:text-3xl bg-primary text-white rounded-full p-1 flex-shrink-0" />
               </Link>
             </div>
-            <p className="text-xl">{userData.profession[0]?.position}</p>
+            <p className="text-base sm:text-xl">{userData.profession[0]?.position}</p>
           </div>
-          <div className="py-5">
+          <div className="py-4 sm:py-5">
             <p className="font-semibold text-xs text-slate-400 pb-1">
               PROFESSIONAL INFO
             </p>
-            <p>{userData.institution}</p>
-            <p>{userData.profession[0]?.position}</p>
+            <p className="text-sm sm:text-base break-words">{userData.institution}</p>
+            <p className="text-sm sm:text-base">{userData.profession[0]?.position}</p>
           </div>
-          <div className="py-5">
+          <div className="py-4 sm:py-5">
             <p className="font-semibold text-xs text-slate-400 pb-1">
               EDUCATIONAL HISTORY
             </p>
-            <p>{userData.degree}</p>
-            <p>{userData.result}</p>
+            <p className="text-sm sm:text-base break-words">{userData.degree}</p>
+            <p className="text-sm sm:text-base">{userData.result}</p>
           </div>
         </div>
-        <div className="md:col-span-4 lg:col-span-5 col-span-7">
+        <div className="md:col-span-4 lg:col-span-5">
           <div className="border-b pb-1">
             <div className="md:block hidden">
               <div className="flex justify-between items-center">
-                <h3 className="text-3xl font-semibold">
+                <h3 className="text-2xl lg:text-3xl font-semibold break-words">
                   {userData.firstname} {userData.lastname}
                 </h3>
                 <Link to={"/updateProfile"}>
                   <MdEdit className="text-3xl bg-primary text-white rounded-full p-1" />
                 </Link>
               </div>
-              <p className="text-xl">{userData.profession[0]?.position}</p>
+              <p className="text-lg sm:text-xl">{userData.profession[0]?.position}</p>
             </div>
-            <div className="pt-7 flex gap-8">
+            <div className="pt-5 sm:pt-7 flex gap-6 sm:gap-8">
               <p
-                className={`flex gap-1 items-center cursor-pointer ${activeTab === 0 && "text-primary"
+                className={`flex gap-1 items-center cursor-pointer text-sm sm:text-base ${activeTab === 0 && "text-primary"
                   }`}
                 onClick={() => setActiveTab(0)}
               >
-                <MdPerson className="text-xl" /> <span>About</span>
+                <MdPerson className="text-lg sm:text-xl" /> <span>About</span>
               </p>
               <p
-                className={`flex gap-1 items-center cursor-pointer ${activeTab === 1 && "text-primary"
+                className={`flex gap-1 items-center cursor-pointer text-sm sm:text-base ${activeTab === 1 && "text-primary"
                   }`}
                 onClick={() => setActiveTab(1)}
               >
@@ -111,34 +108,34 @@ const Profile = () => {
           </div>
           {activeTab === 0 && (
             <div>
-              <div className="py-5 mt-5">
+              <div className="py-4 sm:py-5 mt-4 sm:mt-5">
                 <p className="font-semibold text-slate-400 pb-2 text-xs">
                   CONTACT INFO
                 </p>
-                <div className="grid grid-cols-5">
-                  <p>Phone</p>
-                  <p className="col-span-4">{userData.phone}</p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-y-2">
+                  <p className="text-sm">Phone</p>
+                  <p className="col-span-2 sm:col-span-4 text-sm break-words">{userData.phone}</p>
                 </div>
-                <div className="grid grid-cols-5 py-2">
-                  <p>Address</p>
-                  <p className="col-span-4">{userData.location}</p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 py-2 gap-y-2">
+                  <p className="text-sm">Address</p>
+                  <p className="col-span-2 sm:col-span-4 text-sm break-words">{userData.location}</p>
                 </div>
-                <div className="grid grid-cols-5">
-                  <p>Email</p>
-                  <p className="col-span-4">{userData.email}</p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-y-2">
+                  <p className="text-sm">Email</p>
+                  <p className="col-span-2 sm:col-span-4 text-sm break-words">{userData.email}</p>
                 </div>
               </div>
-              <div className="py-5">
+              <div className="py-4 sm:py-5">
                 <p className="font-semibold text-slate-400 pb-2 text-xs">
                   PERSONAL INFO
                 </p>
-                <div className="grid grid-cols-5">
-                  <p>Birthday</p>
-                  <p className="col-span-4">{userData.birthday}</p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-y-2">
+                  <p className="text-sm">Birthday</p>
+                  <p className="col-span-2 sm:col-span-4 text-sm">{userData.birthday}</p>
                 </div>
-                <div className="grid grid-cols-5 py-2">
-                  <p>Gender</p>
-                  <p className="col-span-4">{userData.gender}</p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 py-2 gap-y-2">
+                  <p className="text-sm">Gender</p>
+                  <p className="col-span-2 sm:col-span-4 text-sm">{userData.gender}</p>
                 </div>
               </div>
             </div>
@@ -146,9 +143,8 @@ const Profile = () => {
           {activeTab === 1 && (
             <div>
               {enrolledCourses?.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-5">
                   {enrolledCourses.map((course) => {
-                    // Check if the logged-in user has completed the course
                     const isUserCompleted = course.students.some(
                       (student) =>
                         student.studentsId === user.user._id &&
@@ -163,13 +159,13 @@ const Profile = () => {
                       >
                         <img
                             src={resolveMediaUrl(course.banner)}
-                          className="h-32 min-w-full object-cover"
+                          className="h-28 sm:h-32 min-w-full object-cover"
                           alt=""
                         />
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">
                           {course.title}
                         </h3>
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-sm text-gray-600 mb-4">
                           <strong>Category:</strong> {course.category}
                         </p>
                         {isUserCompleted ? (
@@ -178,12 +174,12 @@ const Profile = () => {
                               pathname: "/dashboard/user/userCertificate",
                             }}
                             state={{ courseTitle: course.title }}
-                            className="btn bg-primary text-white"
+                            className="btn bg-primary text-white text-sm"
                           >
                             Download Certificate
                           </Link>
                         ) : (
-                          <p className="text-gray-500">
+                          <p className="text-sm text-gray-500">
                             Please Complete Your Course
                           </p>
                         )}
@@ -192,7 +188,7 @@ const Profile = () => {
                   })}
                 </div>
               ) : (
-                <h4 className="text-xl flex justify-center items-center pt-32">
+                <h4 className="text-base sm:text-xl flex justify-center items-center pt-20 sm:pt-32 px-4 text-center">
                   You are not enrolled in any course; thus, no certificate is
                   available.
                 </h4>
