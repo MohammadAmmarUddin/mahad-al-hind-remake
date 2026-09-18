@@ -8,6 +8,9 @@ const dns = require("dns");
 
 const app = express();
 
+// Suppress Express default error page
+app.set("env", "production");
+
 // ENV
 const PORT = process.env.PORT || 4000;
 const BASE_URL = process.env.BASE_URL;
@@ -115,6 +118,9 @@ const breakingNewsRoutes = require("./Routes/breakingNewsRoutes");
 const heroBannerRoutes = require("./Routes/heroBannerRoutes");
 const noticeCategoryRoutes = require("./Routes/noticeCategoryRoutes");
 const studentVideoReviewRoutes = require("./Routes/studentVideoReviewRoutes");
+const newsRoutes = require("./Routes/newsRoutes");
+const careerRoutes = require("./Routes/careerRoutes");
+const faqRoutes = require("./Routes/faqRoutes");
 
 app.use("/api/user", userRoutes);
 app.use("/api/course", courseRoutes);
@@ -139,12 +145,26 @@ app.use("/api/breaking-news", breakingNewsRoutes);
 app.use("/api/hero-banners", heroBannerRoutes);
 app.use("/api/notice-categories", noticeCategoryRoutes);
 app.use("/api/student-video-reviews", studentVideoReviewRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/careers", careerRoutes);
+app.use("/api/faqs", faqRoutes);
 
 // --------------------
 // Mobile Auth (HTML page for Chrome Custom Tab)
 // --------------------
 const { mobileSignInPage } = require("./Controllers/mobileAuthController");
 app.get("/auth/mobile-signin", mobileSignInPage);
+
+// --------------------
+// Global Error Handler (disable 500 page, show homepage)
+// --------------------
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.message || err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.redirect("/");
+});
 
 // --------------------
 // Local Dev Server (skip on Vercel)

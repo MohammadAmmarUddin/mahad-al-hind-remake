@@ -3,11 +3,11 @@ import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import Whatsapp from "../Components/Whatsapp";
 import VortiCholche from "../Components/VortiCholche";
+import UtilityBar from "../Components/UtilityBar";
 
 function Main() {
   const location = useLocation();
 
-  // Regular expression to match the singleCourse/:id route
   const singleCourseRegex = /^\/singleCourse\/[^/]+$/;
 
   const shouldRenderHeaderFooter =
@@ -17,11 +17,12 @@ function Main() {
   return (
     <div className="relative">
       {shouldRenderHeaderFooter && (
-        <div className="pb-[72px]">
+        <div className="">
+          <UtilityBar />
           <Navbar />
         </div>
       )}
-      <div className="min-h-[79vh]">
+      <div className="">
         <Outlet />
       </div>
       <VortiCholche />

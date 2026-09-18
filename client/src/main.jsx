@@ -28,6 +28,12 @@ class AppErrorBoundary extends Component {
             <p className="mt-2 text-sm text-slate-600">
               The page failed to load. Please refresh and try again.
             </p>
+            <button
+              onClick={() => window.location.href = "/"}
+              className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+            >
+              Go to Homepage
+            </button>
           </div>
         </div>
       );

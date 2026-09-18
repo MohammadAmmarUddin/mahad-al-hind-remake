@@ -82,6 +82,25 @@ const fallbackContent = {
     startDate: "1 February, 2026",
     endDate: "10 Ramadan, 2026",
   },
+  utilityBar: {
+    socialLinks: {
+      facebook: "https://www.facebook.com/profile.php?id=61552346161606",
+      youtube: "",
+      linkedin: "",
+      instagram: "",
+    },
+    contact: {
+      phone: "+919365262648",
+      email: "info@mahad-al-hind.net",
+    },
+    ctaButtons: [
+      { label: "Notice", path: "/#notice-board", order: 0 },
+      { label: "News", path: "/news", order: 1 },
+      { label: "Career", path: "/career", order: 2 },
+      { label: "FAQ", path: "/faq", order: 3 },
+      { label: "Apply Online", path: "/apply", order: 4 },
+    ],
+  },
 };
 
 export const SiteContentProvider = ({ children }) => {

@@ -1342,7 +1342,7 @@ const getVideosCount = async (req, res) => {
       // Filter courses where the student is enrolled
       {
         $match: {
-          students: id, // Match courses where studentId exists in the students array
+          "students.studentsId": new mongoose.Types.ObjectId(id),
         },
       },
       // Project the number of videos in each course

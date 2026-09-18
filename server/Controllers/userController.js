@@ -152,7 +152,7 @@ const googleLogin = async (req, res) => {
     }
 
     // Generate token
-    const token = createToken(user._id);
+    const token = createToken(user);
 
     // Return user data and token
     res.status(200).json({

@@ -31,18 +31,24 @@ import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos";
 import HomeSectionManager from "../Pages/Dashboard/AdminDashboard/HomeSectionManager";
 import ManageGallery from "../Pages/Dashboard/AdminDashboard/ManageGallery";
 import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
-import AppUpdate from "../Pages/Dashboard/AdminDashboard/AppUpdate";
-import AudioLibraryAdmin from "../Pages/Dashboard/AdminDashboard/AudioLibraryAdmin";
-import FinanceOverview from "../Pages/Dashboard/AdminDashboard/FinanceOverview";
 import ManageBreakingNews from "../Pages/Dashboard/AdminDashboard/ManageBreakingNews";
 import ManageNotices from "../Pages/Dashboard/AdminDashboard/ManageNotices";
 import ManageNoticeCategories from "../Pages/Dashboard/AdminDashboard/ManageNoticeCategories";
-import ManageStudentReviews from "../Pages/Dashboard/AdminDashboard/ManageStudentReviews";
+import ManageNews from "../Pages/Dashboard/AdminDashboard/ManageNews";
+import ManageCareers from "../Pages/Dashboard/AdminDashboard/ManageCareers";
+import ManageFAQ from "../Pages/Dashboard/AdminDashboard/ManageFAQ";
+import NewsPage from "../Pages/NewsPage";
+import NewsDetailPage from "../Pages/NewsDetailPage";
+import CareerPage from "../Pages/CareerPage";
+import CareerDetailPage from "../Pages/CareerDetailPage";
+import FaqPage from "../Pages/FaqPage";
+import ErrorPage from "../Pages/ErrorPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <Main />,
+    errorElement: <ErrorPage />,
     children: [
       { path: "/", element: <Home /> },
       { path: "/signup", element: <Signup /> },
@@ -58,11 +64,19 @@ export const router = createBrowserRouter([
       { path: "/certificate-checker", element: <CertificateChecker /> },
       { path: "/updateProfile", element: <UpdateProfile /> },
       { path: "/Admission-help", element: <AdmissionHelp /> },
+      { path: "/apply", element: <AdmissionHelp /> },
+      { path: "/notice", element: <Home /> },
+      { path: "/news", element: <NewsPage /> },
+      { path: "/news/:id", element: <NewsDetailPage /> },
+      { path: "/career", element: <CareerPage /> },
+      { path: "/career/:id", element: <CareerDetailPage /> },
+      { path: "/faq", element: <FaqPage /> },
     ],
   },
   {
     path: "/dashboard/admin",
     element: <Dashboard />,
+    errorElement: <ErrorPage />,
     children: [
       { path: "/dashboard/admin/adminHome", element: <AdminHome /> },
       { path: "/dashboard/admin/addCourses", element: <AddCourses /> },
@@ -76,18 +90,18 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/homeSections", element: <HomeSectionManager /> },
       { path: "/dashboard/admin/gallery", element: <ManageGallery /> },
       { path: "/dashboard/admin/enrollmentSettings", element: <EnrollmentSettings /> },
-      { path: "/dashboard/admin/appUpdate", element: <AppUpdate /> },
-      { path: "/dashboard/admin/audioLibrary", element: <AudioLibraryAdmin /> },
-      { path: "/dashboard/admin/finance", element: <FinanceOverview /> },
       { path: "/dashboard/admin/breakingNews", element: <ManageBreakingNews /> },
       { path: "/dashboard/admin/manageNotices", element: <ManageNotices /> },
       { path: "/dashboard/admin/manageNoticeCategories", element: <ManageNoticeCategories /> },
-      { path: "/dashboard/admin/manageStudentReviews", element: <ManageStudentReviews /> },
+      { path: "/dashboard/admin/manageNews", element: <ManageNews /> },
+      { path: "/dashboard/admin/manageCareers", element: <ManageCareers /> },
+      { path: "/dashboard/admin/manageFAQ", element: <ManageFAQ /> },
     ],
   },
   {
     path: "/dashboard/user",
     element: <Dashboard />,
+    errorElement: <ErrorPage />,
     children: [
       { path: "/dashboard/user/userHome", element: <UserHome /> },
       { path: "/dashboard/user/userPaymentHistory", element: <PaymentHistory /> },
@@ -95,5 +109,9 @@ export const router = createBrowserRouter([
       { path: "/dashboard/user/userReview", element: <AddReview /> },
       { path: "/dashboard/user/userCertificate", element: <Certificate /> },
     ],
+  },
+  {
+    path: "*",
+    element: <ErrorPage />,
   },
 ]);

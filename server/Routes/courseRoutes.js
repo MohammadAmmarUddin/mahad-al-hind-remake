@@ -51,7 +51,7 @@ router.get("/getAllCourses", getAllCourses);
 router.get("/getCourseCount", courseCount);
 router.get("/getSingleCourse/:id", getSingleCourse);
 router.get("/getAllEnrolledCourse/:id", getAllEnrolledCourse);
-router.get("/getReletedCourse", getReletedCourses);
+router.get("/getReletedCourse/:id", getReletedCourses);
 router.get("/topCourses", topCourses);
 router.get("/enrolledUsersCourses", getEnrolledUsersCourses);
 router.get("/getTotalRevenue", getTotalRevenue);

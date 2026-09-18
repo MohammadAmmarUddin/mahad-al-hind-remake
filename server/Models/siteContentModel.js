@@ -102,6 +102,23 @@ const siteContentSchema = new mongoose.Schema(
       slideshow: { type: Boolean, default: false },
       imagesOnly: { type: Boolean, default: false },
     },
+    utilityBar: {
+      socialLinks: {
+        facebook: { type: String, default: "" },
+        youtube: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        instagram: { type: String, default: "" },
+      },
+      contact: {
+        phone: { type: String, default: "" },
+        email: { type: String, default: "" },
+      },
+      ctaButtons: [{
+        label: { type: String, required: true },
+        path: { type: String, required: true },
+        order: { type: Number, default: 0 },
+      }],
+    },
   },
   { timestamps: true },
 );

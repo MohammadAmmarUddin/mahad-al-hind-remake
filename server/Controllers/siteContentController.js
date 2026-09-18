@@ -76,6 +76,25 @@ const defaultContent = {
     slideshow: false,
     imagesOnly: false,
   },
+  utilityBar: {
+    socialLinks: {
+      facebook: "https://www.facebook.com/profile.php?id=61552346161606",
+      youtube: "",
+      linkedin: "",
+      instagram: "",
+    },
+    contact: {
+      phone: "+919365262648",
+      email: "info@mahad-al-hind.net",
+    },
+    ctaButtons: [
+      { label: "Notice", path: "/#notice-board", order: 0 },
+      { label: "News", path: "/news", order: 1 },
+      { label: "Career", path: "/career", order: 2 },
+      { label: "FAQ", path: "/faq", order: 3 },
+      { label: "Apply Online", path: "/apply", order: 4 },
+    ],
+  },
 };
 
 const getContentDocument = async () => {
@@ -83,6 +102,36 @@ const getContentDocument = async () => {
 
   if (!content) {
     content = await SiteContent.create(defaultContent);
+  } else {
+    // Ensure utilityBar has defaults
+    const ub = content.utilityBar || {};
+    const contact = ub.contact || {};
+    const social = ub.socialLinks || {};
+    const buttons = ub.ctaButtons || [];
+    const def = defaultContent.utilityBar;
+
+    const needsFill =
+      (!contact.phone && !contact.email) ||
+      (!social.facebook && !social.youtube && !social.linkedin && !social.instagram) ||
+      buttons.length === 0;
+
+    if (needsFill) {
+      await SiteContent.findOneAndUpdate(
+        { key: "public-site" },
+        {
+          $set: {
+            "utilityBar.socialLinks.facebook": social.facebook || def.socialLinks.facebook,
+            "utilityBar.socialLinks.youtube": social.youtube || def.socialLinks.youtube,
+            "utilityBar.socialLinks.linkedin": social.linkedin || def.socialLinks.linkedin,
+            "utilityBar.socialLinks.instagram": social.instagram || def.socialLinks.instagram,
+            "utilityBar.contact.phone": contact.phone || def.contact.phone,
+            "utilityBar.contact.email": contact.email || def.contact.email,
+            "utilityBar.ctaButtons": buttons.length > 0 ? buttons : def.ctaButtons,
+          },
+        },
+      );
+      content = await SiteContent.findOne({ key: "public-site" });
+    }
   }
 
   return content;

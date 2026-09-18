@@ -1,6 +1,7 @@
 import "swiper/css";
 import "swiper/css/pagination";
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -27,17 +28,23 @@ const heroBanners = [
 const Home = () => {
   const { user } = useAuthContext();
   const { translate } = useSiteContent();
+  const location = useLocation();
   const sections = readLocalJson(
     HOME_SECTIONS_STORAGE_KEY,
     defaultHomeSections,
   );
 
+  useEffect(() => {
+    if (location.hash === "#notice-board") {
+      const timer = setTimeout(() => {
+        document.getElementById("notice-board")?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash]);
+
   return (
     <div className="bg-[#faf6ee]">
-      <div className="container-main">
-        {sections.breakingNews && <BreakingNews />}
-      </div>
-
       {sections.hero && (
         <section className="relative overflow-hidden">
           {/* Swiper as full background */}
@@ -120,6 +127,26 @@ const Home = () => {
             <div className="hero-pagination absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2" />
           </div>
         </section>
+      )}
+
+      {/* Breaking News Ticker - under hero */}
+      {sections.breakingNews && (
+        <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 shadow-md">
+          <div className="container-main flex items-stretch">
+            <div className="flex shrink-0 items-center bg-red-800 px-4 py-2.5 sm:px-5">
+              <span className="relative flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>
+                </span>
+                Breaking
+              </span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <BreakingNews />
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="container-main">

@@ -1,4 +1,5 @@
 const express = require("express");
+const requireAuth = require("../Middleware/requireAuth");
 const {
   getPublicSiteContent,
   updatePublicSiteContent,
@@ -7,6 +8,6 @@ const {
 const router = express.Router();
 
 router.get("/public", getPublicSiteContent);
-router.patch("/public", updatePublicSiteContent);
+router.patch("/public", requireAuth, updatePublicSiteContent);
 
 module.exports = router;

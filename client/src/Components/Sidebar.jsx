@@ -18,6 +18,9 @@ import {
   FaBullhorn,
   FaStickyNote,
   FaStar,
+  FaNewspaper,
+  FaBriefcase,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import { MdLibraryBooks, MdPayment, MdSchool, MdAssignmentTurnedIn, MdStar } from "react-icons/md";
 import { GrUserManager, GrAddCircle } from "react-icons/gr";
@@ -87,6 +90,9 @@ const Sidebar = () => {
     { to: "/dashboard/admin/manageNotices", icon: <FaStickyNote className="h-4 w-4" />, label: "Manage Notices" },
     { to: "/dashboard/admin/manageNoticeCategories", icon: <FaStickyNote className="h-4 w-4" />, label: "Notice Categories" },
     { to: "/dashboard/admin/manageStudentReviews", icon: <FaStar className="h-4 w-4" />, label: "Student Reviews" },
+    { to: "/dashboard/admin/manageNews", icon: <FaNewspaper className="h-4 w-4" />, label: "Manage News" },
+    { to: "/dashboard/admin/manageCareers", icon: <FaBriefcase className="h-4 w-4" />, label: "Manage Careers" },
+    { to: "/dashboard/admin/manageFAQ", icon: <FaQuestionCircle className="h-4 w-4" />, label: "Manage FAQ" },
   ];
 
   const userLinks = [
