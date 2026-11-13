@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../../Components/Sidebar";
 import DashNavbar from "./UserDashboard/DashNavbar";
+import RouteFallback from "../../Layout/RouteFallback";
 
 const Dashboard = () => {
   return (
@@ -8,11 +10,12 @@ const Dashboard = () => {
       <div className="relative">
         <Sidebar />
       </div>
-      <div className="flex-1 lg:ml-64 min-h-screen">
+      <div className="min-h-screen min-w-0 flex-1 lg:ml-[280px]">
         <DashNavbar />
         <div className="p-3 sm:p-4">
-          {" "}
-          <Outlet />
+          <Suspense fallback={<RouteFallback />}>
+            <Outlet />
+          </Suspense>
         </div>
       </div>
     </div>

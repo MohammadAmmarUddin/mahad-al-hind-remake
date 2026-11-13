@@ -96,20 +96,18 @@ const VideoSection = () => {
                 }}
               >
                 <div className="pt-[56.25%]" />
-                <iframe
-                  key={`${currentVideo?._id || current}-${playing}`}
-                  className="absolute inset-0 h-full w-full border-0"
-                  title={currentVideo?.title || "Video"}
-                  src={
-                    currentVideo?.embedUrl
-                      ? playing
-                        ? `${currentVideo.embedUrl}?autoplay=1&rel=0&modestbranding=1`
-                        : `${currentVideo.embedUrl}?rel=0&modestbranding=1`
-                      : ""
-                  }
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                {playing && currentVideo?.embedUrl ? (
+                  <iframe
+                    key={`${currentVideo?._id || current}`}
+                    className="absolute inset-0 h-full w-full border-0"
+                    title={currentVideo?.title || "Video"}
+                    src={`${currentVideo.embedUrl}?autoplay=1&rel=0&modestbranding=1`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-neutral-900" />
+                )}
 
                 {!playing && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-900/70 to-primary-900/30">

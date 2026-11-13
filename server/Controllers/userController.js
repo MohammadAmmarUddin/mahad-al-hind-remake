@@ -17,6 +17,7 @@ const {
 
 const DeviceDetector = require("device-detector-js");
 const deviceDetector = new DeviceDetector();
+const { verifyGoogleIdToken, GoogleAuthError } = require("../Utils/googleIdToken");
 
 // nodemailer welcome message
 const transporter = nodemailer.createTransport({
@@ -325,10 +326,11 @@ const forgetPassword = async (req, res) => {
   if (!user) {
     return res.json({ message: "user not registered" });
   }
-  const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "5m",
-  });
-  console.log(token);
+  const token = jwt.sign(
+    { _id: user._id, id: user._id, role: user.role },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "5m" },
+  );
 
   var transporter = nodemailer.createTransport({
     auth: {
@@ -545,129 +547,75 @@ const signupUserV2 = async (req, res) => {
   }
 };
 
-// ─── Google Token Verification ───
-// Fetches Google's public certs at runtime and verifies JWT manually.
-// Firebase tokens use different signing keys than standard Google OAuth.
+// ─── Google login ───
+// The ID token is verified with the official libraries (signature, issuer,
+// audience and expiry). The client-supplied profile fields are never trusted.
+// A verified email is the only way a session can be issued.
 
-const FIREBASE_PROJECT_ID = process.env.GOOGLE_FIREBASE_PROJECT_ID || "context-auth-e9060";
-const GOOGLE_CERTS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
-
-let googleCertsCache = { keys: null, fetchedAt: 0 };
-const CERTS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
-async function getGoogleCerts() {
-  const now = Date.now();
-  if (googleCertsCache.keys && (now - googleCertsCache.fetchedAt) < CERTS_CACHE_TTL) {
-    return googleCertsCache.keys;
-  }
-  try {
-    const res = await fetch(GOOGLE_CERTS_URL);
-    const data = await res.json();
-    const keys = {};
-    // Firebase x509 endpoint returns { "kid": "-----BEGIN CERTIFICATE-----..." }
-    for (const [kid, pem] of Object.entries(data)) {
-      if (typeof pem === "string" && pem.includes("BEGIN CERTIFICATE")) {
-        keys[kid] = pem;
-      }
-    }
-    googleCertsCache = { keys, fetchedAt: now };
-    return keys;
-  } catch (e) {
-    console.warn("[Google] Failed to fetch certs:", e.message);
-    return googleCertsCache.keys || {};
-  }
-}
-
-function getGooglePublicKey(kid, keys) {
-  return keys[kid] || null;
-}
-
-const verifyGoogleToken = async (idToken, provider = "google") => {
-  const audience = provider === "firebase"
-    ? FIREBASE_PROJECT_ID
-    : process.env.GOOGLE_CLIENT_ID;
-
-  const certs = await getGoogleCerts();
-
-  const decoded = jwt.decode(idToken, { complete: true });
-  if (!decoded || !decoded.header || !decoded.header.kid) {
-    throw new Error("Invalid Google token: no kid found");
-  }
-
-  const publicKey = getGooglePublicKey(decoded.header.kid, certs);
-  if (!publicKey) {
-    // Refetch certs once in case of key rotation
-    googleCertsCache.fetchedAt = 0;
-    const freshCerts = await getGoogleCerts();
-    const freshKey = getGooglePublicKey(decoded.header.kid, freshCerts);
-    if (!freshKey) {
-      throw new Error(`No PEM found for kid: ${decoded.header.kid}`);
-    }
-    const payload = jwt.verify(idToken, freshKey, { algorithms: ["RS256"], audience: audience });
-    return {
-      email: payload.email,
-      name: payload.name || "",
-      picture: payload.picture || "",
-      sub: payload.sub,
-    };
-  }
-
-  const payload = jwt.verify(idToken, publicKey, { algorithms: ["RS256"], audience: audience });
+const splitDisplayName = (fullName) => {
+  const trimmed = (fullName || "").trim();
+  if (!trimmed) return { firstname: "User", lastname: "" };
+  const parts = trimmed.split(/\s+/);
   return {
-    email: payload.email,
-    name: payload.name || "",
-    picture: payload.picture || "",
-    sub: payload.sub,
+    firstname: parts[0] || "User",
+    lastname: parts.slice(1).join(" "),
   };
 };
 
 const googleLoginV2 = async (req, res) => {
+  const { idToken, provider, phone } = req.body || {};
+
+  if (!idToken) {
+    // The legacy unverified email-only branch is gone on purpose: it allowed
+    // anyone to obtain a valid session for any registered email address.
+    return res.status(400).json({ error: "Google sign-in token is required" });
+  }
+
+  let googleUser;
   try {
-    const { idToken, firstname, lastname, email, phone, role, prevRole, img, provider } = req.body;
-
-    let finalEmail, finalFirstname, finalLastname, finalImg, finalRole;
-
-    if (idToken) {
-      // Mobile app flow: verify the Google/Firebase ID token
-      const googleUser = await verifyGoogleToken(idToken, provider || "google");
-
-      if (!googleUser.email) {
-        return res.status(400).json({ error: "Could not extract email from Google token" });
-      }
-
-      finalEmail = googleUser.email;
-      const name = googleUser.name || '';
-      const photoUrl = googleUser.picture || '';
-
-      const nameParts = name.split(' ');
-      finalFirstname = nameParts[0] || 'User';
-      finalLastname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Unknown';
-      finalImg = photoUrl;
-      finalRole = 'student';
-    } else if (email) {
-      // Web client fallback: use user data directly (legacy flow)
-      finalEmail = email;
-      finalFirstname = firstname || 'Unknown';
-      finalLastname = lastname || 'Unknown';
-      finalImg = img || '';
-      finalRole = role || 'user';
-    } else {
-      return res.status(400).json({ error: "Either idToken or email is required" });
+    googleUser = await verifyGoogleIdToken(idToken, provider === "firebase" ? "firebase" : "google");
+  } catch (error) {
+    if (error instanceof GoogleAuthError) {
+      const status = error.code === "not_configured" ? 503 : 401;
+      const message =
+        status === 503
+          ? "Google sign-in is not available right now"
+          : "Google sign-in could not be verified";
+      return res.status(status).json({ error: message });
     }
+    console.error("[google-login] unexpected verification failure");
+    return res.status(401).json({ error: "Google sign-in could not be verified" });
+  }
 
-    let user = await userModel.findOne({ email: finalEmail });
+  if (!googleUser.email) {
+    return res.status(401).json({ error: "Google sign-in could not be verified" });
+  }
+
+  if (!googleUser.emailVerified) {
+    return res.status(403).json({ error: "Google account email is not verified" });
+  }
+
+  const email = googleUser.email.toLowerCase();
+
+  try {
+    let user = await userModel.findOne({ email });
     let isNewUser = false;
 
+    if (user && user.isSuspended) {
+      return res.status(403).json({ error: "This account is suspended" });
+    }
+
     if (!user) {
+      // First sign-in creates the student record, matching web behaviour.
+      const { firstname, lastname } = splitDisplayName(googleUser.name);
       isNewUser = true;
       user = await userModel.create({
-        firstname: finalFirstname,
-        lastname: finalLastname,
-        email: finalEmail,
+        firstname,
+        lastname,
+        email,
         phone: phone || undefined,
-        role: finalRole,
-        prevRole,
-        img: finalImg,
+        role: "student",
+        img: googleUser.picture || "",
       });
     }
 
@@ -683,6 +631,7 @@ const googleLoginV2 = async (req, res) => {
       });
     }
 
+    // Response shape unchanged so web and every installed app version parse it.
     res.status(200).json({
       user: {
         ...user.toObject(),
@@ -691,8 +640,8 @@ const googleLoginV2 = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error("Google login error:", error);
-    res.status(400).json({ error: error.message });
+    console.error("[google-login] account lookup or creation failed");
+    res.status(400).json({ error: "Google sign-in failed. Please try again." });
   }
 };
 

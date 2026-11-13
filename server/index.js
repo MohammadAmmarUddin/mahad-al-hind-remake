@@ -35,20 +35,43 @@ app.use(
 // --------------------
 // CORS
 // --------------------
-app.use(
-  cors({
-    origin: [BASE_URL, "https://mahad-al-hind.netlify.app", "http://localhost:5173"].filter(Boolean),
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
-    credentials: true,
-  }),
-);
+const allowedOrigins = [
+  BASE_URL,
+  "https://mahad-al-hind.netlify.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+].filter(Boolean);
 
-app.options("*", cors());
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+      callback(null, true);
+      return;
+    }
+    if (process.env.NODE_ENV !== "production") {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // --------------------
 // Body Parsers
 // --------------------
+// Behind Vercel's proxy, so req.ip must come from X-Forwarded-For for the
+// login rate limiters to see real client addresses instead of the edge.
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
@@ -156,12 +179,19 @@ const { mobileSignInPage } = require("./Controllers/mobileAuthController");
 app.get("/auth/mobile-signin", mobileSignInPage);
 
 // --------------------
-// Global Error Handler (disable 500 page, show homepage)
+// Global Error Handler (JSON for API, redirect for pages)
 // --------------------
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err.message || err);
   if (res.headersSent) {
     return next(err);
+  }
+  if (req.path && req.path.startsWith("/api")) {
+    const status = err.status || err.statusCode || 500;
+    return res.status(status).json({
+      success: false,
+      message: err.message || "Internal server error",
+    });
   }
   res.redirect("/");
 });

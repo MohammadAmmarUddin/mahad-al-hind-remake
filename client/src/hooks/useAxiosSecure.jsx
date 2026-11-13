@@ -20,6 +20,7 @@ const useAxiosSecure = () => {
         config.headers = config.headers || {};
         if (token) {
           config.headers.authorization = `Bearer ${token}`;
+          config.headers["x-access-token"] = token;
         }
         return config;
       },
@@ -31,7 +32,7 @@ const useAxiosSecure = () => {
       async (error) => {
         const status = error?.response?.status;
 
-        if (status === 401 || status === 403) {
+        if (status === 401) {
           localStorage.removeItem("user");
           localStorage.removeItem("access-token");
           dispatch({ type: "LOGOUT" });

@@ -2,28 +2,38 @@ const AudioCategory = require("../Models/audioCategoryModel");
 const Audio = require("../Models/audioModel");
 const { destroyCloudinaryAsset } = require("../Utils/cloudinary");
 
+const CATEGORY_TYPES = ["tilawah", "surah", "juzz", "maqamat"];
+
 // ─── CATEGORIES ────────────────────────────────────────────
 
 exports.getCategories = async (req, res) => {
   try {
-    const { type, parentId } = req.query;
+    const { type } = req.query;
     const filter = {};
     if (type) filter.type = type;
-    if (parentId === "null" || parentId === "root") filter.parentId = null;
-    else if (parentId) filter.parentId = parentId;
 
     const categories = await AudioCategory.find(filter)
       .sort({ order: 1, name: 1 })
       .lean();
 
-    // Attach audio count to each category
-    const catsWithCount = await Promise.all(
-      categories.map(async (cat) => {
-        const count = await Audio.countDocuments({ categoryId: cat._id, isVisible: true });
-        const subCount = await AudioCategory.countDocuments({ parentId: cat._id });
-        return { ...cat, audioCount: count, subCategoryCount: subCount };
-      })
-    );
+    const ids = categories.map((cat) => cat._id);
+
+    // One bulk aggregation instead of one query per category (N+1).
+    const audioCounts = ids.length
+      ? await Audio.aggregate([
+          { $match: { categoryId: { $in: ids }, isVisible: true } },
+          { $group: { _id: "$categoryId", count: { $sum: 1 } } },
+        ])
+      : [];
+
+    const audioMap = new Map(audioCounts.map((row) => [String(row._id), row.count]));
+
+    const catsWithCount = categories.map((cat) => ({
+      ...cat,
+      parentId: null,
+      audioCount: audioMap.get(String(cat._id)) || 0,
+      subCategoryCount: 0,
+    }));
 
     res.status(200).json({ success: true, data: catsWithCount });
   } catch (error) {
@@ -37,9 +47,8 @@ exports.getCategoryById = async (req, res) => {
     if (!category) return res.status(404).json({ error: "Category not found" });
 
     const audioCount = await Audio.countDocuments({ categoryId: category._id, isVisible: true });
-    const children = await AudioCategory.find({ parentId: category._id }).sort({ order: 1 }).lean();
 
-    res.status(200).json({ success: true, data: { ...category, audioCount, children } });
+    res.status(200).json({ success: true, data: { ...category, parentId: null, audioCount, children: [] } });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -47,16 +56,21 @@ exports.getCategoryById = async (req, res) => {
 
 exports.createCategory = async (req, res) => {
   try {
-    const { name, type, description, image, parentId, order } = req.body;
+    const { name, type, description, image, order } = req.body;
     if (!name || !type) {
       return res.status(400).json({ error: "name and type are required" });
+    }
+    if (!CATEGORY_TYPES.includes(type)) {
+      return res
+        .status(400)
+        .json({ error: `Invalid type. Allowed: ${CATEGORY_TYPES.join(", ")}` });
     }
     const category = await AudioCategory.create({
       name: name.trim(),
       type,
       description: description || "",
       image: image || "",
-      parentId: parentId || null,
+      parentId: null,
       order: order || 0,
     });
     res.status(201).json({ success: true, data: category });
@@ -67,9 +81,21 @@ exports.createCategory = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
   try {
+    const { name, type, description, image, order, isVisible } = req.body;
+
+    const updates = {};
+    if (name !== undefined) updates.name = String(name).trim();
+    if (type !== undefined) updates.type = type;
+    if (description !== undefined) updates.description = description || "";
+    if (image !== undefined) updates.image = image || "";
+    if (order !== undefined) updates.order = Number(order) || 0;
+    if (isVisible !== undefined) updates.isVisible = Boolean(isVisible);
+    // Categories are flat: any nested entry is flattened on edit.
+    updates.parentId = null;
+
     const category = await AudioCategory.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: updates },
       { new: true, runValidators: true }
     );
     if (!category) return res.status(404).json({ error: "Category not found" });
@@ -112,8 +138,11 @@ exports.deleteCategory = async (req, res) => {
 
 exports.getAudios = async (req, res) => {
   try {
-    const { categoryId, search, reciter, sort = "order", limit = 50, skip = 0 } = req.query;
-    const filter = { isVisible: true };
+    const { categoryId, search, reciter, sort = "order", limit = 50, skip = 0, admin } = req.query;
+    const filter = {};
+    if (admin !== "true" && admin !== "1") {
+      filter.isVisible = true;
+    }
 
     if (categoryId) filter.categoryId = categoryId;
     if (reciter) filter.reciter = { $regex: reciter, $options: "i" };

@@ -10,9 +10,9 @@ const DashNavbar = () => {
   const { logout } = useLogout();
 
   return (
-    <div className="flex h-14 w-full items-center justify-between border-b border-primary-100 bg-gradient-to-r from-primary-600 to-primary-500 px-4 shadow-sm">
-      <p className="text-sm font-semibold text-white drop-shadow sm:text-base">
-        Welcome {user?.user?.firstname + " " + user?.user?.lastname}
+    <div className="flex h-14 w-full items-center justify-between border-b border-primary-100 bg-gradient-to-r from-primary-600 to-primary-500 pl-16 pr-4 shadow-sm lg:pl-4">
+      <p className="truncate text-sm font-semibold text-white drop-shadow sm:text-base">
+        Welcome {user?.user?.firstname || ""} {user?.user?.lastname || ""}
       </p>
 
       <div className="flex items-center gap-3">
@@ -41,10 +41,10 @@ const DashNavbar = () => {
               </Link>
             </li>
             <li>
-              <a className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700">
+              <Link to="/settings" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-primary-50 hover:text-primary-700">
                 <FiSettings className="h-4 w-4" />
                 Settings
-              </a>
+              </Link>
             </li>
             <li>
               <button onClick={logout} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-red-50 hover:text-red-600">

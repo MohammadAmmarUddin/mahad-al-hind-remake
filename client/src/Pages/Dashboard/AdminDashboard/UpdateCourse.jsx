@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import JoditEditor from "jodit-react";
@@ -6,7 +7,19 @@ import useAuthContext from "../../../hooks/useAuthContext";
 import { API } from "../../../config/api";
 import { uploadFilesToBackend, validateFile } from "../../../utils/uploadMedia";
 import { resolveMediaUrl } from "../../../utils/media";
+import { getStoredAuthToken } from "../../../utils/authToken";
 import { startTransition } from "react";
+
+const authHeaders = (contentType) => {
+  const token = getStoredAuthToken();
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers["x-access-token"] = token;
+  }
+  if (contentType) headers["Content-Type"] = contentType;
+  return headers;
+};
 
 function UpdateCourse() {
   const { id } = useParams();
@@ -43,6 +56,7 @@ function UpdateCourse() {
   const [totalFiles, setTotalFiles] = useState(0);
   const [error, setError] = useState("");
   const [quizzes, setQuizzes] = useState([]);
+  const [instructorIds, setInstructorIds] = useState(null);
   const baseUrl = API;
   // Fetch course data
   useEffect(() => {
@@ -65,48 +79,65 @@ function UpdateCourse() {
           setSelectedVideos(courseData.videos || []);
           setSelectedKeywords(courseData.keywords || []);
           setQuizzes(
-            courseData.quiz?.map((q) => ({
-              ...q,
-              selectedAnswer: q.ans.toString(),
-            })) || []
+            (Array.isArray(courseData.quiz) ? courseData.quiz : []).map((q) => {
+              const ans =
+                q.ans !== undefined && q.ans !== null && !Number.isNaN(Number(q.ans))
+                  ? Number(q.ans)
+                  : 0;
+              return {
+                ...q,
+                ans,
+                selectedAnswer: String(ans),
+              };
+            })
           );
 
-          if (courseData.instructorsId) {
-            const instructors = courseData.instructorsId
-              .map((instructorId) => {
-                const instructor = selectInstructors.find(
-                  (inst) => inst._id === instructorId
-                );
-                return instructor ? { ...instructor } : null;
-              })
-              .filter((inst) => inst !== null);
-            setSelectedInstructors(instructors);
+          if (Array.isArray(courseData.instructorsId)) {
+            setInstructorIds(courseData.instructorsId);
           }
         } else {
-          console.error("Failed to fetch course data");
+          setError("Failed to load course data.");
         }
-      } catch (error) {
-        console.error("Error fetching course data:", error);
+      } catch {
+        setError("Error fetching course data.");
       }
     };
 
     fetchCourseData();
-  }, [id, selectInstructors]);
+  }, [id]);
 
   // Fetch instructors data
   useEffect(() => {
-    const fetchAllUsers = () => {
-      const url = `${baseUrl}/api/user/allUsers`;
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          setSelectInstructors(data);
-        })
-        .catch((error) => console.log(error));
+    const fetchAllUsers = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/user/allUsers`, {
+          headers: authHeaders(),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setSelectInstructors(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error(error);
+      }
     };
 
     fetchAllUsers();
   }, []);
+
+  // Map instructor IDs once users are loaded
+  useEffect(() => {
+    if (!instructorIds || selectInstructors.length === 0) return;
+    const instructors = instructorIds
+      .map((instructorId) => {
+        const instructor = selectInstructors.find(
+          (inst) => inst._id === instructorId
+        );
+        return instructor ? { ...instructor } : null;
+      })
+      .filter(Boolean);
+    setSelectedInstructors(instructors);
+    setInstructorIds(null);
+  }, [instructorIds, selectInstructors]);
 
   // Handle input changes
   const handleInputChange = (event) => {
@@ -180,7 +211,7 @@ function UpdateCourse() {
   const handleAddQuiz = () => {
     setQuizzes([
       ...quizzes,
-      { ques: "", options: ["", "", "", ""], ans: "", selectedAnswer: "" },
+      { ques: "", options: ["", "", "", ""], ans: 0, selectedAnswer: "0" },
     ]);
   };
 
@@ -288,7 +319,10 @@ function UpdateCourse() {
         details: content,
         requirements,
         whatsappGroupLink,
-        instructorsId: selectedInstructors.map((inst) => inst._id),
+        instructorsId:
+          selectedInstructors.length > 0
+            ? selectedInstructors.map((inst) => inst._id)
+            : instructorIds || [],
         ...(bannerURL && { banner: bannerURL }),
         ...(bannerPublicId && { bannerPublicId }),
         ...(videoURLs.length > 0 && { videos: videoURLs }),
@@ -299,24 +333,24 @@ function UpdateCourse() {
         keywords: selectedKeywords,
         price,
         discount,
-        quiz: quizzes.map((q) => ({
-          ques: q.ques,
-          options: q.options,
-          ans: parseInt(q.selectedAnswer),
-        })),
+        quiz: quizzes
+          .filter((q) => q.ques && q.ques.trim())
+          .map((q) => ({
+            ques: q.ques,
+            options: q.options,
+            ans: Number.isNaN(parseInt(q.selectedAnswer, 10))
+              ? 0
+              : parseInt(q.selectedAnswer, 10),
+          })),
       };
 
       const response = await fetch(`${baseUrl}/api/course/updateCourse/${id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders("application/json"),
         body: JSON.stringify(courseData),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Course updated successfully:", data);
         startTransition(() => {
           navigate(`/singleCourse/${id}`);
         });

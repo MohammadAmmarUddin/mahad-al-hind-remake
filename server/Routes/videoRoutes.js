@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Video = require("../Models/videoModel");
+const requireAuth = require("../Middleware/requireAuth");
 
 // GET all videos
 router.get("/", async (req, res) => {
@@ -15,7 +16,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST add new video
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
     const { title, tag, desc, embedUrl } = req.body;
     if (!title || !embedUrl) {
@@ -33,8 +34,31 @@ router.post("/", async (req, res) => {
   }
 });
 
+// PATCH update video by id
+router.patch("/:id", requireAuth, async (req, res) => {
+  try {
+    const { title, tag, desc, description, embedUrl } = req.body;
+    const update = {};
+    if (title !== undefined) update.title = title;
+    if (tag !== undefined) update.tag = tag;
+    if (desc !== undefined) update.desc = desc;
+    if (description !== undefined) update.desc = description;
+    if (embedUrl !== undefined) update.embedUrl = embedUrl;
+
+    const updated = await Video.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+    });
+    if (!updated) return res.status(404).json({ message: "Video not found" });
+    res.status(200).json(updated);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to update video", error: error.message });
+  }
+});
+
 // DELETE video by id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, async (req, res) => {
   try {
     const deleted = await Video.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Video not found" });

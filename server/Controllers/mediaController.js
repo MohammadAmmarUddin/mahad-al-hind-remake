@@ -8,7 +8,7 @@ const {
 const getResourceType = (file = {}, body = {}) => {
   const declared = String(body.resourceType || "").toLowerCase();
 
-  if (declared === "video" || declared === "raw") {
+  if (declared === "video" || declared === "raw" || declared === "audio") {
     return declared;
   }
 
@@ -16,7 +16,15 @@ const getResourceType = (file = {}, body = {}) => {
     return "video";
   }
 
-  if (file.mimetype?.startsWith("application/pdf")) {
+  if (file.mimetype?.startsWith("audio/")) {
+    return "audio";
+  }
+
+  if (
+    file.mimetype?.startsWith("application/pdf") ||
+    file.mimetype === "application/msword" ||
+    file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
     return "raw";
   }
 
@@ -26,6 +34,10 @@ const getResourceType = (file = {}, body = {}) => {
 const getMediaType = (resourceType, file = {}) => {
   if (resourceType === "video" || file.mimetype?.startsWith("video/")) {
     return "video";
+  }
+
+  if (resourceType === "audio" || file.mimetype?.startsWith("audio/")) {
+    return "audio";
   }
 
   if (resourceType === "image" || file.mimetype?.startsWith("image/")) {
@@ -46,6 +58,7 @@ const normalizeMedia = (media = {}) => ({
   title: media.title || "",
   description: media.description || "",
   isPublic: Boolean(media.isPublic),
+  resourceType: media.type || "image",
   createdAt: media.createdAt,
   updatedAt: media.updatedAt,
   stored: media.stored ?? true,
@@ -71,7 +84,7 @@ const uploadMedia = async (req, res) => {
 
     const mediaType = getMediaType(resourceType, req.file);
 
-    if (mediaType === "image" || mediaType === "video") {
+    if (mediaType === "image" || mediaType === "video" || mediaType === "audio") {
       const media = await Media.create({
         url: uploaded.secureUrl,
         public_id: uploaded.publicId,

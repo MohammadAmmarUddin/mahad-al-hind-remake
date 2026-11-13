@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API } from "../config/api";
+import { getStoredAuthToken } from "./authToken";
 
 export const DEFAULT_ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -11,6 +12,8 @@ export const DEFAULT_ALLOWED_IMAGE_TYPES = [
 
 export const DEFAULT_ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
 export const DEFAULT_ALLOWED_VIDEO_TYPES = [
@@ -20,7 +23,28 @@ export const DEFAULT_ALLOWED_VIDEO_TYPES = [
   "video/x-msvideo",
 ];
 
+export const DEFAULT_ALLOWED_AUDIO_TYPES = [
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/ogg",
+  "audio/webm",
+  "audio/aac",
+  "audio/flac",
+  "audio/x-m4a",
+  "audio/mp4",
+  "audio/m4a",
+];
+
 export const DEFAULT_MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
+
+const buildAuthHeaders = () => {
+  const token = getStoredAuthToken();
+  return token
+    ? { Authorization: `Bearer ${token}`, "x-access-token": token }
+    : {};
+};
 
 export const fileToDataUrl = (file) =>
   new Promise((resolve, reject) => {
@@ -72,7 +96,8 @@ export const uploadFilesToBackend = async ({
 
     try {
       const response = await axios.post(`${API}/api/media/upload`, formData, {
-        timeout: 8000,
+        timeout: 180000,
+        headers: buildAuthHeaders(),
         onUploadProgress: (event) => {
           if (typeof onProgress === "function" && event.total) {
             const current = Math.round((event.loaded * 100) / event.total);
@@ -83,16 +108,16 @@ export const uploadFilesToBackend = async ({
       });
 
       const data = response.data || {};
-      uploads.push(
-        data.data ||
-          data || {
-            url: data.url || data.secureUrl || data.secure_url || "",
-            secureUrl: data.secureUrl || data.secure_url || data.url || "",
-            publicId: data.publicId || data.public_id || "",
-            public_id: data.public_id || data.publicId || "",
-            image: data.url || data.secureUrl || data.secure_url || "",
-          },
-      );
+      const payload = data.data || data;
+      uploads.push({
+        url: payload.url || payload.secureUrl || payload.secure_url || payload.image || "",
+        secureUrl: payload.secureUrl || payload.secure_url || payload.url || "",
+        publicId: payload.publicId || payload.public_id || "",
+        public_id: payload.public_id || payload.publicId || "",
+        image: payload.image || payload.url || payload.secureUrl || "",
+        resourceType: payload.resourceType || payload.type || resourceType,
+        type: payload.type || resourceType,
+      });
     } catch (error) {
       const message = error?.response?.data?.message || error?.response?.data?.error || error.message;
       throw new Error(message || "Upload failure");

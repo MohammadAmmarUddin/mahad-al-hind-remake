@@ -85,7 +85,7 @@ const defaultContent = {
     },
     contact: {
       phone: "+919365262648",
-      email: "info@mahad-al-hind.net",
+      email: "mahadalhind@gmail.com",
     },
     ctaButtons: [
       { label: "Notice", path: "/#notice-board", order: 0 },

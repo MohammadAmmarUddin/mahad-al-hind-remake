@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import Whatsapp from "../Components/Whatsapp";
 import VortiCholche from "../Components/VortiCholche";
 import UtilityBar from "../Components/UtilityBar";
+import RouteFallback from "./RouteFallback";
 
 function Main() {
   const location = useLocation();
@@ -23,7 +25,9 @@ function Main() {
         </div>
       )}
       <div className="">
-        <Outlet />
+        <Suspense fallback={<RouteFallback />}>
+          <Outlet />
+        </Suspense>
       </div>
       <VortiCholche />
       <Whatsapp />

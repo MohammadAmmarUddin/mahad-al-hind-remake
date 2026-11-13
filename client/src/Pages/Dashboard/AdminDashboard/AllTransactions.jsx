@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import { TbCurrencyTaka } from "react-icons/tb";
 import { API } from "../../../config/api";
 import Swal from "sweetalert2";
 import { getStoredAuthToken } from "../../../utils/authToken";
+import useAuthContext from "../../../hooks/useAuthContext";
 
 const statusConfig = {
   completed: { label: "Completed", class: "bg-emerald-100 text-emerald-700" },
@@ -17,26 +18,39 @@ const AllTransactions = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const transactionsPerPage = 15;
+  const { user } = useAuthContext();
 
-  const token = getStoredAuthToken();
+  const getToken = () => getStoredAuthToken() || user?.token || "";
 
   const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
+      setError("");
+      const token = getToken();
       const res = await fetch(`${API}/api/course/all-enrollments`, {
-        headers: token ? { Authorization: `Bearer ${token}`, "x-access-token": token } : {},
+        headers: token
+          ? { Authorization: `Bearer ${token}`, "x-access-token": token }
+          : {},
       });
       if (res.ok) {
         const data = await res.json();
         setTransactions(Array.isArray(data) ? data : []);
+      } else if (res.status === 401 || res.status === 403) {
+        setError("You are not authorized to view transactions. Please log in as admin.");
+        setTransactions([]);
+      } else {
+        setError("Failed to load transactions. Please try again.");
+        setTransactions([]);
       }
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
+    } catch {
+      setError("Network error while loading transactions.");
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [user]);
 
   useEffect(() => {
     fetchTransactions();
@@ -53,6 +67,7 @@ const AllTransactions = () => {
     if (!result.isConfirmed) return;
 
     try {
+      const token = getToken();
       const res = await fetch(`${API}/api/course/approve-enrollment/${tranId}`, {
         method: "PATCH",
         headers: {
@@ -64,7 +79,7 @@ const AllTransactions = () => {
         Swal.fire({ icon: "success", title: "Approved", timer: 1500, showConfirmButton: false });
         fetchTransactions();
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Failed to approve");
       }
     } catch (error) {
@@ -84,6 +99,7 @@ const AllTransactions = () => {
     if (!result.isConfirmed) return;
 
     try {
+      const token = getToken();
       const res = await fetch(`${API}/api/course/reject-enrollment/${tranId}`, {
         method: "PATCH",
         headers: {
@@ -95,7 +111,7 @@ const AllTransactions = () => {
         Swal.fire({ icon: "success", title: "Rejected", timer: 1500, showConfirmButton: false });
         fetchTransactions();
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Failed to reject");
       }
     } catch (error) {
@@ -121,6 +137,23 @@ const AllTransactions = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl text-primary">Loading transactions...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <h1 className="text-3xl font-bold text-primary mb-8">Transaction History</h1>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
+          <p className="mb-4">{error}</p>
+          <button
+            onClick={fetchTransactions}
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -223,13 +256,15 @@ const AllTransactions = () => {
         <div className="flex justify-center mt-8">
           <nav>
             <ul className="pagination flex items-center gap-3">
-              <button
-                onClick={() => setCurrentPage((p) => p - 1)}
-                disabled={currentPage === 1}
-                className={`text-2xl py-2 px-4 rounded ${currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "text-primary"}`}
-              >
-                <FaChevronLeft />
-              </button>
+              <li>
+                <button
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  disabled={currentPage === 1}
+                  className={`text-2xl py-2 px-4 rounded ${currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "text-primary"}`}
+                >
+                  <FaChevronLeft />
+                </button>
+              </li>
               {[...Array(totalPages)].map((_, i) => (
                 <li key={i + 1} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
                   <button
@@ -240,13 +275,15 @@ const AllTransactions = () => {
                   </button>
                 </li>
               ))}
-              <button
-                onClick={() => setCurrentPage((p) => p + 1)}
-                disabled={currentPage === totalPages}
-                className={`text-2xl py-2 px-4 rounded ${currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "text-primary"}`}
-              >
-                <FaChevronRight />
-              </button>
+              <li>
+                <button
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`text-2xl py-2 px-4 rounded ${currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "text-primary"}`}
+                >
+                  <FaChevronRight />
+                </button>
+              </li>
             </ul>
           </nav>
         </div>

@@ -3,7 +3,6 @@ import {
   FaHome,
   FaBookOpen,
   FaTachometerAlt,
-  FaUsers,
   FaBars,
   FaUser,
   FaCertificate,
@@ -22,40 +21,34 @@ import {
   FaBriefcase,
   FaQuestionCircle,
 } from "react-icons/fa";
-import { MdLibraryBooks, MdPayment, MdSchool, MdAssignmentTurnedIn, MdStar } from "react-icons/md";
+import { MdLibraryBooks, MdPayment, MdSchool, MdStar } from "react-icons/md";
 import { GrUserManager, GrAddCircle } from "react-icons/gr";
 import { NavLink, useLocation } from "react-router-dom";
 import useAuthContext from "../hooks/useAuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { API } from "../config/api";
 import { resolveMediaUrl } from "../utils/media";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuthContext();
-  const [currentUser, setCurrentUser] = useState({});
   const location = useLocation();
-  const baseUrl = API;
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  const fetchAllUsers = () => {
-    fetch(`${baseUrl}/api/user/allUsers`)
-      .then((res) => res.json())
-      .then((data) => {
-        const userData = data.find((u) => u._id === user?.user?._id);
-        setCurrentUser(userData || {});
-      })
-      .catch(() => {});
-  };
-
   useEffect(() => {
-    if (user?.user?._id) fetchAllUsers();
-  }, [user?.user?._id]);
-
-  useEffect(() => {
-    setIsOpen(false);
+    // Only auto-close on navigation for mobile; keep open on desktop (lg+)
+    if (window.innerWidth < 1024) setIsOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setIsOpen(true);
+      else setIsOpen(false);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const singleCourseRegex = /^\/singleCourse\/[^/]+$/;
 
@@ -93,6 +86,7 @@ const Sidebar = () => {
     { to: "/dashboard/admin/manageNews", icon: <FaNewspaper className="h-4 w-4" />, label: "Manage News" },
     { to: "/dashboard/admin/manageCareers", icon: <FaBriefcase className="h-4 w-4" />, label: "Manage Careers" },
     { to: "/dashboard/admin/manageFAQ", icon: <FaQuestionCircle className="h-4 w-4" />, label: "Manage FAQ" },
+    { to: "/dashboard/admin/heroBanners", icon: <FaImages className="h-4 w-4" />, label: "Hero Banners" },
   ];
 
   const userLinks = [
@@ -102,19 +96,22 @@ const Sidebar = () => {
     { to: "/dashboard/user/userReview", icon: <MdStar className="h-4 w-4" />, label: "Add Review" },
   ];
 
-  const links = currentUser?.role === "admin" ? adminLinks : userLinks;
-  const dashboardTitle = currentUser?.role === "admin" ? "Admin Dashboard" : "User Dashboard";
+  const role = user?.user?.role;
+  const links = role === "admin" ? adminLinks : userLinks;
+  const dashboardTitle = role === "admin" ? "Admin Dashboard" : "User Dashboard";
 
   return (
     <>
-      {/* Mobile Toggle */}
-      <button
-        onClick={toggleSidebar}
-        className="fixed left-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-lg bg-primary-700 text-white shadow-lg transition-colors hover:bg-primary-800 lg:hidden"
-        aria-label="Toggle sidebar"
-      >
-        {isOpen ? <FaTimes className="h-5 w-5" /> : <FaBars className="h-5 w-5" />}
-      </button>
+      {/* Mobile Toggle - shown only while sidebar is collapsed */}
+      {!isOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="fixed left-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-lg bg-primary-700 text-white shadow-lg transition-colors hover:bg-primary-800 lg:hidden"
+          aria-label="Open sidebar"
+        >
+          <FaBars className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Overlay */}
       <AnimatePresence>
@@ -132,12 +129,20 @@ const Sidebar = () => {
       {/* Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ x: isOpen || typeof window !== "undefined" && window.innerWidth >= 1024 ? 0 : -280 }}
+        animate={{ x: isOpen ? 0 : -280 }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
         className="fixed left-0 top-0 z-50 flex h-screen w-[280px] flex-col overflow-y-auto bg-gradient-to-b from-primary-800 via-primary-700 to-primary-900 shadow-xl scrollbar-hidden"
       >
         {/* Profile */}
-        <div className="flex flex-col items-center border-b border-white/10 px-6 py-6">
+        <div className="relative flex flex-col items-center border-b border-white/10 px-6 py-6">
+          {/* Mobile collapse icon */}
+          <button
+            onClick={toggleSidebar}
+            aria-label="Collapse sidebar"
+            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20 lg:hidden"
+          >
+            <FaTimes className="h-4 w-4" />
+          </button>
           <img
             src={resolveMediaUrl(user?.user?.img || "/default-profile.png")}
             alt="Profile"

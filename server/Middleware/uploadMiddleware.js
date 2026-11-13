@@ -13,6 +13,19 @@ const allowedMimeTypes = new Set([
   "video/quicktime",
   "video/x-msvideo",
   "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/ogg",
+  "audio/webm",
+  "audio/aac",
+  "audio/flac",
+  "audio/x-m4a",
+  "audio/mp4",
+  "audio/m4a",
 ]);
 
 const upload = multer({
@@ -27,7 +40,14 @@ const upload = multer({
       return;
     }
 
-    if (allowedMimeTypes.has(file.mimetype) || file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
+    const mime = file.mimetype.toLowerCase();
+
+    if (
+      allowedMimeTypes.has(mime) ||
+      mime.startsWith("image/") ||
+      mime.startsWith("video/") ||
+      mime.startsWith("audio/")
+    ) {
       cb(null, true);
       return;
     }

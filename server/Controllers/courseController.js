@@ -790,6 +790,8 @@ const completeCourse = async (req, res) => {
       certificateId,
       studentName,
       courseName: course.title || "Course",
+      dob: studentUser?.birthday || null,
+      address: studentUser?.location || "",
       issueDate: new Date(),
       valid: true,
     });
@@ -1372,6 +1374,84 @@ const getVideosCount = async (req, res) => {
   }
 };
 
+const updateStudentEnrollment = async (req, res) => {
+  const { courseId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(courseId)) {
+    return res.status(404).json({ error: "Invalid course ID" });
+  }
+
+  const { studentId, updates } = req.body;
+  if (!studentId || !mongoose.Types.ObjectId.isValid(studentId)) {
+    return res.status(400).json({ error: "studentId is required" });
+  }
+
+  try {
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const studentIndex = course.students.findIndex(
+      (s) => s.studentsId && String(s.studentsId) === String(studentId),
+    );
+    if (studentIndex === -1) {
+      return res
+        .status(404)
+        .json({ error: "Student is not enrolled in this course" });
+    }
+
+    const allowed = [
+      "paymentComplete",
+      "unlockedVideo",
+      "isCourseComplete",
+      "isQuizComplete",
+      "quizMarks",
+      "quizMarksPercentage",
+      "certificateUrl",
+      "paymentId",
+    ];
+    if (updates && typeof updates === "object") {
+      for (const key of allowed) {
+        if (key in updates) {
+          course.students[studentIndex][key] = updates[key];
+        }
+      }
+    }
+
+    await course.save();
+    res.status(200).json({ message: "Enrollment updated", course });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const removeStudentEnrollment = async (req, res) => {
+  const { courseId, studentId } = req.params;
+  if (
+    !mongoose.Types.ObjectId.isValid(courseId) ||
+    !mongoose.Types.ObjectId.isValid(studentId)
+  ) {
+    return res.status(404).json({ error: "Invalid ID" });
+  }
+
+  try {
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    course.students = course.students.filter(
+      (s) => !(s.studentsId && String(s.studentsId) === String(studentId)),
+    );
+    await course.save();
+    res
+      .status(200)
+      .json({ message: "Student removed from course", course });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createCourse,
   getAllCourses,
@@ -1405,4 +1485,6 @@ module.exports = {
   getTotalPaymentBySpecificStudent,
   getUserCourseProgress,
   getVideosCount,
+  updateStudentEnrollment,
+  removeStudentEnrollment,
 };

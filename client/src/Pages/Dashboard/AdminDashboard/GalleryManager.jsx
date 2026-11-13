@@ -138,6 +138,7 @@ const GalleryManager = () => {
 
 const InlineUpload = ({ mutation, onSuccess, onError }) => {
   const [title, setTitle] = useState("");
+  const [galleryType, setGalleryType] = useState("general");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [progress, setProgress] = useState(0);
@@ -159,6 +160,7 @@ const InlineUpload = ({ mutation, onSuccess, onError }) => {
 
   const reset = () => {
     setTitle("");
+    setGalleryType("general");
     setFile(null);
     if (preview) URL.revokeObjectURL(preview);
     setPreview("");
@@ -176,6 +178,7 @@ const InlineUpload = ({ mutation, onSuccess, onError }) => {
         {
           file,
           title: title.trim(),
+          galleryType,
           isVisible: isPublic,
           onProgress: setProgress,
         },
@@ -187,7 +190,9 @@ const InlineUpload = ({ mutation, onSuccess, onError }) => {
           onError,
         },
       );
-    } catch {}
+    } catch (err) {
+      onError?.(err);
+    }
   };
 
   const isVideo = file?.type?.startsWith("video/");
@@ -227,7 +232,16 @@ const InlineUpload = ({ mutation, onSuccess, onError }) => {
             className="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
             placeholder="Image title"
           />
-          <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-700">
+          <select
+            value={galleryType}
+            onChange={(e) => setGalleryType(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500"
+          >
+            <option value="general">General</option>
+            <option value="student">Student</option>
+            <option value="just_memories">Just Memories</option>
+          </select>
+          <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-700 md:col-span-2">
             <input
               type="checkbox"
               checked={isPublic}
@@ -367,6 +381,7 @@ const EmptyState = () => (
 
 const EditModal = ({ item, onClose, onSuccess, onError, mutation }) => {
   const [title, setTitle] = useState(item.title || item.name || "");
+  const [galleryType, setGalleryType] = useState(item.galleryType || "general");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
 
@@ -385,7 +400,7 @@ const EditModal = ({ item, onClose, onSuccess, onError, mutation }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { title: title.trim() };
+    const payload = { title: title.trim(), galleryType };
     if (file) payload.file = file;
 
     try {
@@ -393,7 +408,9 @@ const EditModal = ({ item, onClose, onSuccess, onError, mutation }) => {
         { id: item._id, ...payload },
         { onSuccess, onError },
       );
-    } catch {}
+    } catch (err) {
+      onError?.(err);
+    }
   };
 
   return (
@@ -422,6 +439,21 @@ const EditModal = ({ item, onClose, onSuccess, onError, mutation }) => {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
             />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+              Gallery Type
+            </label>
+            <select
+              value={galleryType}
+              onChange={(e) => setGalleryType(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500"
+            >
+              <option value="general">General</option>
+              <option value="student">Student</option>
+              <option value="just_memories">Just Memories</option>
+            </select>
           </div>
 
           <div>
@@ -495,7 +527,9 @@ const DeleteModal = ({ item, onClose, onSuccess, onError, mutation }) => {
   const handleDelete = async () => {
     try {
       await mutation.mutateAsync(item._id, { onSuccess, onError });
-    } catch {}
+    } catch (err) {
+      onError?.(err);
+    }
   };
 
   return (

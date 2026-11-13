@@ -6,13 +6,21 @@ import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import { API } from "../../../config/api";
 import { resolveMediaUrl } from "../../../utils/media";
+import { getStoredAuthToken } from "../../../utils/authToken";
+
+const authHeaders = () => {
+  const token = getStoredAuthToken();
+  return token
+    ? { Authorization: `Bearer ${token}`, "x-access-token": token }
+    : {};
+};
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
   const [visibleDropdown, setVisibleDropdown] = useState(null);
 
   const fetchCourses = () => {
-    fetch(`${API}/api/course/getAllCourses`)
+    fetch(`${API}/api/course/getAllCourses`, { headers: authHeaders() })
       .then((res) => res.json())
       .then(setCourses)
       .catch(() => {});
@@ -33,8 +41,14 @@ const ManageCourses = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`${API}/api/course/deleteCourse/${id}`, { method: "DELETE" })
-          .then((res) => res.json())
+        fetch(`${API}/api/course/deleteCourse/${id}`, {
+          method: "DELETE",
+          headers: authHeaders(),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to delete course");
+            return res.json();
+          })
           .then(() => {
             Swal.fire({ title: "Deleted!", text: "The course has been deleted.", icon: "success", confirmButtonColor: "#047857" });
             fetchCourses();

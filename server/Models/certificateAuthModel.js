@@ -16,6 +16,15 @@ const certificateSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    dob: {
+      type: Date,
+      default: null,
+    },
+    address: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     issueDate: {
       type: Date,
       required: true,
@@ -27,5 +36,9 @@ const certificateSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+certificateSchema.index({ studentName: 1 });
+certificateSchema.index({ courseName: 1 });
+certificateSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Certificate", certificateSchema);

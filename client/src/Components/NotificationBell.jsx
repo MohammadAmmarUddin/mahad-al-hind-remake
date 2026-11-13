@@ -3,6 +3,7 @@ import { IoIosNotifications } from "react-icons/io";
 import { Link } from "react-router-dom";
 import useAuthContext from "../hooks/useAuthContext";
 import { API } from "../config/api";
+import { getStoredAuthToken } from "../utils/authToken";
 
 const NotificationBell = () => {
   const { user } = useAuthContext();
@@ -11,7 +12,7 @@ const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const token = user?.token;
+  const token = getStoredAuthToken() || user?.token;
 
   const headers = token
     ? {

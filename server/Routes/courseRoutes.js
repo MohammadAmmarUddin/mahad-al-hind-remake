@@ -34,12 +34,14 @@ const {
   getTotalPaymentBySpecificStudent,
   getVideosCount,
   getUserCourseProgress,
+  updateStudentEnrollment,
+  removeStudentEnrollment,
 } = require("../Controllers/courseController.js");
 
 const router = express.Router();
 
 //post
-router.post("/createCourse", createCourse);
+router.post("/createCourse", requireAuth, createCourse);
 router.post("/giveRating/:courseId", giveRating);
 router.post("/payment/order", order);
 router.post("/payment/success/:tran_id/:encodedData", success);
@@ -71,11 +73,15 @@ router.patch("/reject-enrollment/:tranId", requireAuth, rejectEnrollment);
 router.get("/pending-enrollments", requireAuth, getPendingEnrollments);
 router.get("/all-enrollments", requireAuth, getAllEnrollments);
 
+// Admin per-student enrollment updates (payments page)
+router.patch("/enrollment/:courseId", requireAuth, updateStudentEnrollment);
+router.delete("/enrollment/:courseId/:studentId", requireAuth, removeStudentEnrollment);
+
 //delete
-router.delete("/deleteCourse/:id", deleteCourse);
+router.delete("/deleteCourse/:id", requireAuth, deleteCourse);
 
 //patch
-router.patch("/updateCourse/:id", updateCourse);
+router.patch("/updateCourse/:id", requireAuth, updateCourse);
 router.patch("/unlockVideo/:id", unlockVideo);
 router.patch("/completeCourse/:id", completeCourse); //id == user's id, not course id
 router.patch("/completeQuiz/:id", completeQuiz); //id == user's id, not course id

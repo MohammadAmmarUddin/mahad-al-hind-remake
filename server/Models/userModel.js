@@ -92,9 +92,7 @@ userSchema.statics.signup = async function (
   imgPublicId = "",
   password
 ) {
-  console.log("🚀 ~ signup method ~ password before any processing:", password);
   const exist = await this.findOne({ email });
-  console.log(password);
   if (exist) {
     if (!password) return exist;
     throw Error("Email already exists.!.");

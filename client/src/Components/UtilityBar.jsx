@@ -30,7 +30,7 @@ const UtilityBar = () => {
   ].filter((s) => s.href);
 
   const phone = contact.phone || "+919365262648";
-  const email = contact.email || "info@mahad-al-hind.net";
+  const email = contact.email || "mahadalhind@gmail.com";
 
   return (
     <div className="relative z-[51] w-full border-b border-white/10 bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800 text-white shadow-sm">

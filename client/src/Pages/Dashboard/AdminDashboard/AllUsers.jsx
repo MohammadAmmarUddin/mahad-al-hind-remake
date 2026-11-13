@@ -3,8 +3,20 @@ import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import Swal from "sweetalert2";
 import { API } from "../../../config/api";
+import { getStoredAuthToken } from "../../../utils/authToken";
 
 const ROLE_OPTIONS = ["student", "instructor", "admin"];
+
+const authHeaders = (contentType) => {
+  const token = getStoredAuthToken();
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers["x-access-token"] = token;
+  }
+  if (contentType) headers["Content-Type"] = contentType;
+  return headers;
+};
 
 const AllUsers = () => {
   const [allUsers, setAllUsers] = useState([]);
@@ -24,8 +36,11 @@ const AllUsers = () => {
   }, [searchTerm]);
 
   const fetchAllUsers = useCallback(() => {
-    fetch(`${API}/api/user/allUsers`)
-      .then((res) => res.json())
+    fetch(`${API}/api/user/allUsers`, { headers: authHeaders() })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load users");
+        return res.json();
+      })
       .then(setAllUsers)
       .catch(() => {});
   }, []);
@@ -57,8 +72,14 @@ const AllUsers = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`${API}/api/user/deleteUser/${id}`, { method: "DELETE" })
-          .then((res) => res.json())
+        fetch(`${API}/api/user/deleteUser/${id}`, {
+          method: "DELETE",
+          headers: authHeaders(),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to delete user");
+            return res.json();
+          })
           .then(() => {
             Swal.fire({ title: "Deleted!", text: "The user has been deleted.", icon: "success", confirmButtonColor: "#047857" });
             fetchAllUsers();
@@ -83,7 +104,7 @@ const AllUsers = () => {
       if (result.isConfirmed) {
         fetch(`${API}/api/user/changeRole/${id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders("application/json"),
           body: JSON.stringify({ role: newRole }),
         })
           .then((res) => {

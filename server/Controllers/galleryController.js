@@ -103,7 +103,7 @@ const uploadGalleryImage = async (req, res) => {
       });
     }
 
-    const { imageUrl, publicId, title, sortOrder, isVisible } = req.body;
+    const { imageUrl, publicId, title, sortOrder, isVisible, resourceType } = req.body;
 
     if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.trim()) {
       return res.status(400).json({
@@ -119,7 +119,7 @@ const uploadGalleryImage = async (req, res) => {
       title: itemTitle,
       imageUrl: imageUrl.trim(),
       publicId: (publicId || "").trim(),
-      resourceType: "image",
+      resourceType: typeof resourceType === "string" && resourceType.trim() ? resourceType.trim() : "image",
       sortOrder: parseInt(sortOrder) || 0,
       isVisible: isVisible !== false,
       uploadedBy: req.adminUser?._id || req.user?._id,
@@ -232,6 +232,15 @@ const updateGalleryItem = async (req, res) => {
 
     if (typeof req.body.sortOrder !== "undefined") {
       update.sortOrder = Number(req.body.sortOrder) || 0;
+    }
+
+    if (typeof req.body.galleryType !== "undefined") {
+      const normalizedType = normalizeGalleryType(req.body.galleryType);
+      if (normalizedType) update.galleryType = normalizedType;
+    }
+
+    if (typeof req.body.resourceType === "string" && req.body.resourceType.trim()) {
+      update.resourceType = req.body.resourceType.trim();
     }
 
     if (typeof req.body.isVisible !== "undefined") {

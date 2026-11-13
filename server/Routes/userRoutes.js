@@ -22,14 +22,23 @@ const {
 const router = express.Router();
 
 const loginLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 15 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
   max: 5, // Limit to 5 requests per window
   message: "Too many login attempts, please try again later.",
 });
+
+// Google sign-in is a separate credential path, so it gets its own budget.
+// Higher than password login because a flaky network can retry a valid login.
+const googleLoginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 15,
+  message: "Too many sign-in attempts, please try again later.",
+});
+
 //post
 router.post("/signup", loginLimiter, signupUser);
 router.post("/login", loginLimiter, loginUser);
-router.post("/googleLogin", googleLogin);
+router.post("/googleLogin", googleLoginLimiter, googleLogin);
 router.post("/forgetPassword", forgetPassword);
 router.post("/resetPassword/:token", resetPassword);
 

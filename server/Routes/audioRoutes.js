@@ -14,7 +14,7 @@ const {
   incrementPlayCount,
   bulkReorder,
 } = require("../Controllers/audioController");
-const requireAuth = require("../Middleware/requireAuth");
+const { requireAuth, requireAdmin } = require("../Middleware/authMiddleware");
 
 // ─── PUBLIC ────────────────────────────────────────────────
 router.get("/categories", getCategories);
@@ -24,12 +24,12 @@ router.get("/:id", getAudioById);
 router.patch("/:id/play", incrementPlayCount);
 
 // ─── ADMIN ─────────────────────────────────────────────────
-router.post("/categories", requireAuth, createCategory);
-router.put("/categories/:id", requireAuth, updateCategory);
-router.delete("/categories/:id", requireAuth, deleteCategory);
-router.post("/", requireAuth, createAudio);
-router.put("/:id", requireAuth, updateAudio);
-router.delete("/:id", requireAuth, deleteAudio);
-router.patch("/bulk-reorder", requireAuth, bulkReorder);
+router.post("/categories", requireAuth, requireAdmin, createCategory);
+router.put("/categories/:id", requireAuth, requireAdmin, updateCategory);
+router.delete("/categories/:id", requireAuth, requireAdmin, deleteCategory);
+router.post("/", requireAuth, requireAdmin, createAudio);
+router.put("/:id", requireAuth, requireAdmin, updateAudio);
+router.delete("/:id", requireAuth, requireAdmin, deleteAudio);
+router.patch("/bulk-reorder", requireAuth, requireAdmin, bulkReorder);
 
 module.exports = router;

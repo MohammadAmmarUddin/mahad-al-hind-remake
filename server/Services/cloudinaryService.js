@@ -1,9 +1,18 @@
 const { v2: cloudinary } = require("cloudinary");
 const { Readable } = require("stream");
 
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.cloudinary_cloud_name;
-const apiKey = process.env.CLOUDINARY_API_KEY || process.env.cloudinary_api_key;
-const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.cloudinary_api_secret;
+const cloudName =
+  process.env.CLOUDINARY_CLOUD_NAME ||
+  process.env.cloudinary_cloud_name ||
+  (process.env.CLOUDINARY_URL ? process.env.CLOUDINARY_URL.split("@")[0]?.split("://")[1]?.split(":")[0] : undefined);
+const apiKey =
+  process.env.CLOUDINARY_API_KEY ||
+  process.env.cloudinary_api_key ||
+  (process.env.CLOUDINARY_URL ? process.env.CLOUDINARY_URL.split("@")[1]?.split(":")[0] : undefined);
+const apiSecret =
+  process.env.CLOUDINARY_API_SECRET ||
+  process.env.cloudinary_api_secret ||
+  (process.env.CLOUDINARY_URL ? process.env.CLOUDINARY_URL.split(":").slice(2).join(":") : undefined);
 const defaultFolder = process.env.cloudinary_upload_folder || "mahad-al-hind";
 
 if (cloudName && apiKey && apiSecret) {
@@ -16,6 +25,15 @@ if (cloudName && apiKey && apiSecret) {
 }
 
 const isCloudinaryConfigured = () => Boolean(cloudName && apiKey && apiSecret);
+
+// Cloudinary only accepts image | video | raw as resource_type.
+// Audio files are stored under Cloudinary's "video" resource type.
+const toCloudinaryResourceType = (resourceType = "image") => {
+  const value = String(resourceType || "").toLowerCase();
+  if (value === "audio") return "video";
+  if (value === "video" || value === "raw" || value === "image") return value;
+  return "image";
+};
 
 const normalizeFolder = (folder = defaultFolder) => {
   const value = String(folder || "").trim().replace(/^\/+|\/+$/g, "");
@@ -108,7 +126,7 @@ const uploadToCloudinary = async (input, metadata = {}) => {
     throw new Error("No upload source was provided.");
   }
 
-  const resourceType = metadata.resourceType || "image";
+  const resourceType = toCloudinaryResourceType(metadata.resourceType || "image");
   const folder = normalizeFolder(metadata.folder);
 
   const result = await cloudinary.uploader.upload(file, {
@@ -150,7 +168,7 @@ const uploadBufferToCloudinary = (buffer, metadata = {}) =>
       return;
     }
 
-    const resourceType = metadata.resourceType || "image";
+    const resourceType = toCloudinaryResourceType(metadata.resourceType || "image");
     const folder = normalizeFolder(metadata.folder);
     const stream = cloudinary.uploader.upload_stream(
       {
@@ -192,17 +210,60 @@ const uploadBufferToCloudinary = (buffer, metadata = {}) =>
     Readable.from(buffer).pipe(stream);
   });
 
-const destroyCloudinaryAsset = async (publicId, resourceType = "image") => {
+const parseCloudinaryUrl = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return { publicId: "", resourceType: "image" };
+
+  if (!/^https?:\/\//i.test(raw)) {
+    return { publicId: raw, resourceType: "image" };
+  }
+
+  try {
+    const url = new URL(raw);
+    const segments = url.pathname.split("/").filter(Boolean);
+    const typeIndex = segments.indexOf("upload");
+    if (typeIndex === -1) return { publicId: "", resourceType: "image" };
+
+    let resourceType = "image";
+    let start = typeIndex + 1;
+    if (segments[start] && !segments[start].includes(".")) {
+      resourceType = segments[start];
+      start += 1;
+    }
+    if (segments[start] && /^\d+$/.test(segments[start])) {
+      start += 1;
+    }
+
+    const publicId = segments.slice(start).join("/").replace(/\.[^.]+$/, "");
+    return { publicId, resourceType };
+  } catch {
+    return { publicId: "", resourceType: "image" };
+  }
+};
+
+const destroyCloudinaryAsset = async (publicIdOrUrl, resourceType = "image") => {
   if (!isCloudinaryConfigured()) {
     throw new Error("Cloudinary is not configured.");
   }
 
-  if (!publicId) {
+  if (!publicIdOrUrl) {
     throw new Error("publicId is required.");
   }
 
+  const parsed = parseCloudinaryUrl(publicIdOrUrl);
+  const publicId = parsed.publicId;
+  const resolvedType = toCloudinaryResourceType(
+    resourceType === "video" || resourceType === "raw" || resourceType === "audio"
+      ? resourceType
+      : parsed.resourceType,
+  );
+
+  if (!publicId) {
+    throw new Error("Could not extract publicId from value.");
+  }
+
   return cloudinary.uploader.destroy(publicId, {
-    resource_type: resourceType || "image",
+    resource_type: resolvedType,
   });
 };
 
@@ -214,6 +275,7 @@ module.exports = {
   isCloudinaryConfigured,
   normalizeFolder,
   normalizeUploadInput,
+  toCloudinaryResourceType,
   uploadToCloudinary,
   uploadBufferToCloudinary,
 };

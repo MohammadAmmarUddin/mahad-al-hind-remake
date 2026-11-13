@@ -1,16 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import {
-  FaTrash,
-  FaPlus,
   FaYoutube,
   FaTag,
   FaAlignLeft,
-  FaLink,
-  FaCheckCircle,
 } from "react-icons/fa";
-import { MdVideoLibrary, MdClose, MdRefresh } from "react-icons/md";
+import { MdClose } from "react-icons/md";
 import { API } from "../../../config/api";
+import { getStoredAuthToken } from "../../../utils/authToken";
+
+const authHeaders = (contentType) => {
+  const token = getStoredAuthToken();
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers["x-access-token"] = token;
+  }
+  if (contentType) headers["Content-Type"] = contentType;
+  return headers;
+};
 
 const toEmbedUrl = (url) => {
   if (!url || typeof url !== "string") return null;
@@ -85,7 +93,7 @@ const ManageVideos = () => {
     setFetchError("");
 
     try {
-      const res = await fetch(`${API}/api/videos`);
+      const res = await fetch(`${API}/api/videos`, { headers: authHeaders() });
       if (!res.ok) throw new Error();
 
       const data = await res.json();
@@ -134,7 +142,7 @@ const ManageVideos = () => {
 
       const res = await fetch(`${API}/api/videos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders("application/json"),
         body: JSON.stringify({ title, tag, desc, embedUrl }),
       });
 
@@ -181,6 +189,7 @@ const ManageVideos = () => {
     try {
       const res = await fetch(`${API}/api/videos/${id}`, {
         method: "DELETE",
+        headers: authHeaders(),
       });
 
       if (!res.ok) throw new Error();

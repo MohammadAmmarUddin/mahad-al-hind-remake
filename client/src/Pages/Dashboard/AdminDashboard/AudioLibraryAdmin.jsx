@@ -1,10 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
+import {
+  uploadFilesToBackend,
+  validateFile,
+  DEFAULT_ALLOWED_AUDIO_TYPES,
+  DEFAULT_ALLOWED_IMAGE_TYPES,
+  DEFAULT_MAX_UPLOAD_SIZE,
+} from "../../../utils/uploadMedia";
 
 const TYPES = ["tilawah", "surah", "juzz", "maqamat"];
 const TYPE_LABELS = { tilawah: "Tilawah", surah: "Surah", juzz: "Juzz", maqamat: "Maqamat" };
 const TYPE_ICONS = { tilawah: "📖", surah: "📕", juzz: "📚", maqamat: "🎵" };
+
+const AUDIO_MAX = 200 * 1024 * 1024;
+
+const apiError = (err, fallback = "Request failed") =>
+  err?.response?.data?.error ||
+  err?.response?.data?.message ||
+  err?.response?.data?.msg ||
+  err?.message ||
+  fallback;
 
 const AudioLibraryAdmin = () => {
   const axiosSecure = useAxiosSecure();
@@ -13,40 +29,53 @@ const AudioLibraryAdmin = () => {
 
   // Categories state
   const [categories, setCategories] = useState([]);
+  const [categoriesError, setCategoriesError] = useState("");
   const [catType, setCatType] = useState("tilawah");
   const [catName, setCatName] = useState("");
   const [catImage, setCatImage] = useState("");
-  const [catParentId, setCatParentId] = useState("");
+  const [catImageFile, setCatImageFile] = useState(null);
   const [editingCat, setEditingCat] = useState(null);
+  const [uploadingCatImage, setUploadingCatImage] = useState(false);
 
   // Audio state
   const [audios, setAudios] = useState([]);
+  const [audiosError, setAudiosError] = useState("");
   const [audioTitle, setAudioTitle] = useState("");
   const [audioDesc, setAudioDesc] = useState("");
   const [audioUrl, setAudioUrl] = useState("");
+  const [audioFile, setAudioFile] = useState(null);
   const [audioThumb, setAudioThumb] = useState("");
+  const [audioThumbFile, setAudioThumbFile] = useState(null);
   const [audioCategoryId, setAudioCategoryId] = useState("");
   const [audioReciter, setAudioReciter] = useState("");
   const [audioDuration, setAudioDuration] = useState("");
   const [editingAudio, setEditingAudio] = useState(null);
   const [audioFilter, setAudioFilter] = useState("");
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const fetchCategories = useCallback(async () => {
+    setCategoriesError("");
     try {
       const { data } = await axiosSecure.get("/api/audio/categories");
-      setCategories(data.data || []);
+      const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      setCategories(list);
     } catch (err) {
-      console.error(err);
+      setCategories([]);
+      setCategoriesError(apiError(err, "Could not load categories"));
     }
   }, [axiosSecure]);
 
   const fetchAudios = useCallback(async () => {
+    setAudiosError("");
     try {
-      const params = audioFilter ? `?categoryId=${audioFilter}` : "";
+      const params = audioFilter ? `?categoryId=${audioFilter}&admin=true` : "?admin=true";
       const { data } = await axiosSecure.get(`/api/audio${params}`);
-      setAudios(data.data || []);
+      const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      setAudios(list);
     } catch (err) {
-      console.error(err);
+      setAudios([]);
+      setAudiosError(apiError(err, "Could not load audios"));
     }
   }, [axiosSecure, audioFilter]);
 
@@ -58,21 +87,40 @@ const AudioLibraryAdmin = () => {
   const saveCategory = async () => {
     if (!catName.trim()) return Swal.fire("Error", "Name required", "error");
     try {
+      setUploadingCatImage(true);
+      let imageUrl = catImage;
+
+      if (catImageFile) {
+        validateFile(catImageFile, {
+          allowedTypes: DEFAULT_ALLOWED_IMAGE_TYPES,
+          maxSize: DEFAULT_MAX_UPLOAD_SIZE,
+        });
+        const uploaded = await uploadFilesToBackend({
+          files: [catImageFile],
+          folder: "audio/categories",
+          resourceType: "image",
+        });
+        imageUrl = uploaded?.url || uploaded?.secureUrl || "";
+        setCatImage(imageUrl);
+      }
+
       if (editingCat) {
         await axiosSecure.put(`/api/audio/categories/${editingCat._id}`, {
-          name: catName.trim(), type: catType, image: catImage, parentId: catParentId || null,
+          name: catName.trim(), type: catType, image: imageUrl,
         });
         Swal.fire("Updated", "Category updated", "success");
       } else {
         await axiosSecure.post("/api/audio/categories", {
-          name: catName.trim(), type: catType, image: catImage, parentId: catParentId || null,
+          name: catName.trim(), type: catType, image: imageUrl,
         });
         Swal.fire("Created", "Category created", "success");
       }
       resetCatForm();
       fetchCategories();
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.error || err.message, "error");
+      Swal.fire("Error", apiError(err, "Could not save category"), "error");
+    } finally {
+      setUploadingCatImage(false);
     }
   };
 
@@ -83,25 +131,66 @@ const AudioLibraryAdmin = () => {
       await axiosSecure.delete(`/api/audio/categories/${id}`);
       fetchCategories();
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.error || err.message, "error");
+      Swal.fire("Error", apiError(err, "Could not delete category"), "error");
     }
   };
 
   const resetCatForm = () => {
-    setCatName(""); setCatImage(""); setCatParentId(""); setEditingCat(null);
+    setCatName(""); setCatImage(""); setCatImageFile(null);
+    setCatType("tilawah"); setEditingCat(null);
   };
 
   // ─── Audio CRUD ───
   const saveAudio = async () => {
-    if (!audioTitle.trim() || !audioUrl.trim() || !audioCategoryId) {
-      return Swal.fire("Error", "Title, URL, and Category are required", "error");
+    if (!audioTitle.trim() || !audioCategoryId) {
+      return Swal.fire("Error", "Title and Category are required", "error");
     }
+    if (!audioUrl.trim() && !audioFile) {
+      return Swal.fire("Error", "Provide an audio file or an audio URL", "error");
+    }
+
     try {
+      setUploadingAudio(true);
+      setUploadProgress(0);
+
+      let finalAudioUrl = audioUrl.trim();
+      let finalThumb = audioThumb.trim();
+
+      if (audioFile) {
+        validateFile(audioFile, {
+          allowedTypes: DEFAULT_ALLOWED_AUDIO_TYPES,
+          maxSize: AUDIO_MAX,
+        });
+        const uploaded = await uploadFilesToBackend({
+          files: [audioFile],
+          folder: "audio/files",
+          resourceType: "audio",
+          onProgress: setUploadProgress,
+        });
+        finalAudioUrl = uploaded?.url || uploaded?.secureUrl || "";
+        setAudioUrl(finalAudioUrl);
+      }
+
+      if (audioThumbFile) {
+        validateFile(audioThumbFile, {
+          allowedTypes: DEFAULT_ALLOWED_IMAGE_TYPES,
+          maxSize: DEFAULT_MAX_UPLOAD_SIZE,
+        });
+        const uploaded = await uploadFilesToBackend({
+          files: [audioThumbFile],
+          folder: "audio/thumbnails",
+          resourceType: "image",
+        });
+        finalThumb = uploaded?.url || uploaded?.secureUrl || "";
+        setAudioThumb(finalThumb);
+      }
+
       const payload = {
-        title: audioTitle.trim(), description: audioDesc.trim(), audioUrl: audioUrl.trim(),
-        thumbnail: audioThumb.trim(), categoryId: audioCategoryId, reciter: audioReciter.trim(),
+        title: audioTitle.trim(), description: audioDesc.trim(), audioUrl: finalAudioUrl,
+        thumbnail: finalThumb, categoryId: audioCategoryId, reciter: audioReciter.trim(),
         duration: Number(audioDuration) || 0,
       };
+
       if (editingAudio) {
         await axiosSecure.put(`/api/audio/${editingAudio._id}`, payload);
         Swal.fire("Updated", "Audio updated", "success");
@@ -112,7 +201,10 @@ const AudioLibraryAdmin = () => {
       resetAudioForm();
       fetchAudios();
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.error || err.message, "error");
+      Swal.fire("Error", apiError(err, "Could not save audio"), "error");
+    } finally {
+      setUploadingAudio(false);
+      setUploadProgress(0);
     }
   };
 
@@ -123,12 +215,13 @@ const AudioLibraryAdmin = () => {
       await axiosSecure.delete(`/api/audio/${id}`);
       fetchAudios();
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.error || err.message, "error");
+      Swal.fire("Error", apiError(err, "Could not delete audio"), "error");
     }
   };
 
   const resetAudioForm = () => {
-    setAudioTitle(""); setAudioDesc(""); setAudioUrl(""); setAudioThumb("");
+    setAudioTitle(""); setAudioDesc(""); setAudioUrl(""); setAudioFile(null);
+    setAudioThumb(""); setAudioThumbFile(null);
     setAudioCategoryId(""); setAudioReciter(""); setAudioDuration(""); setEditingAudio(null);
   };
 
@@ -164,20 +257,25 @@ const AudioLibraryAdmin = () => {
                 <input type="text" className="input input-bordered" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="e.g. Bayati" />
               </div>
               <div className="form-control">
-                <label className="label"><span className="label-text font-semibold">Image URL</span></label>
-                <input type="url" className="input input-bordered" value={catImage} onChange={(e) => setCatImage(e.target.value)} placeholder="Optional thumbnail" />
+                <label className="label"><span className="label-text font-semibold">Image File</span></label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="file-input file-input-bordered w-full"
+                  onChange={(e) => setCatImageFile(e.target.files?.[0] || null)}
+                />
               </div>
               <div className="form-control">
-                <label className="label"><span className="label-text font-semibold">Parent Category (optional)</span></label>
-                <select className="select select-bordered" value={catParentId} onChange={(e) => setCatParentId(e.target.value)}>
-                  <option value="">None (top-level)</option>
-                  {categories.filter((c) => c.type === catType && !c.parentId).map((c) => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
-                  ))}
-                </select>
+                <label className="label"><span className="label-text font-semibold">Or Image URL</span></label>
+                <input type="url" className="input input-bordered" value={catImage} onChange={(e) => { setCatImage(e.target.value); setCatImageFile(null); }} placeholder="Optional thumbnail URL" />
+                {catImage && !catImageFile && (
+                  <img src={catImage} alt="" className="mt-2 h-20 rounded object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                )}
               </div>
               <div className="flex gap-2 mt-2">
-                <button className="btn btn-primary flex-1" onClick={saveCategory}>{editingCat ? "Update" : "Create"}</button>
+                <button className="btn btn-primary flex-1" onClick={saveCategory} disabled={uploadingCatImage}>
+                  {uploadingCatImage ? "Uploading…" : editingCat ? "Update" : "Create"}
+                </button>
                 {editingCat && <button className="btn btn-ghost" onClick={resetCatForm}>Cancel</button>}
               </div>
             </div>
@@ -189,19 +287,29 @@ const AudioLibraryAdmin = () => {
               <h2 className="card-title">Categories ({categories.length})</h2>
               <div className="overflow-x-auto">
                 <table className="table table-sm">
-                  <thead><tr><th>Type</th><th>Name</th><th>Parent</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>Type</th><th>Name</th><th>Actions</th></tr></thead>
                   <tbody>
                     {categories.map((cat) => (
                       <tr key={cat._id}>
                         <td><span className="badge badge-sm">{TYPE_ICONS[cat.type]} {cat.type}</span></td>
                         <td className="font-medium">{cat.name}</td>
-                        <td className="text-sm text-gray-500">{cat.parentId ? categories.find((c) => c._id === cat.parentId)?.name || "—" : "—"}</td>
                         <td>
-                          <button className="btn btn-xs btn-ghost" onClick={() => { setEditingCat(cat); setCatName(cat.name); setCatType(cat.type); setCatImage(cat.image || ""); setCatParentId(cat.parentId || ""); }}>Edit</button>
+                          <button className="btn btn-xs btn-ghost" onClick={() => { setEditingCat(cat); setCatName(cat.name); setCatType(cat.type); setCatImage(cat.image || ""); setCatImageFile(null); }}>Edit</button>
                           <button className="btn btn-xs btn-error btn-ghost" onClick={() => deleteCategory(cat._id)}>Del</button>
                         </td>
                       </tr>
                     ))}
+                    {categoriesError && (
+                      <tr>
+                        <td colSpan={3} className="text-center py-6">
+                          <p className="text-error text-sm">Could not load categories: {categoriesError}</p>
+                          <button className="btn btn-xs btn-outline mt-2" onClick={fetchCategories}>Retry</button>
+                        </td>
+                      </tr>
+                    )}
+                    {!categoriesError && categories.length === 0 && (
+                      <tr><td colSpan={3} className="text-center text-gray-400 py-6">No categories yet. Create one to get started.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -224,7 +332,7 @@ const AudioLibraryAdmin = () => {
                   {TYPES.map((t) => (
                     <optgroup key={t} label={`${TYPE_ICONS[t]} ${TYPE_LABELS[t]}`}>
                       {categories.filter((c) => c.type === t).map((c) => (
-                        <option key={c._id} value={c._id}>{c.parentId ? "  └ " : ""}{c.name}</option>
+                        <option key={c._id} value={c._id}>{c.name}</option>
                       ))}
                     </optgroup>
                   ))}
@@ -235,8 +343,36 @@ const AudioLibraryAdmin = () => {
                 <input type="text" className="input input-bordered" value={audioTitle} onChange={(e) => setAudioTitle(e.target.value)} placeholder="Audio title" />
               </div>
               <div className="form-control">
-                <label className="label"><span className="label-text font-semibold">Audio URL *</span></label>
-                <input type="url" className="input input-bordered" value={audioUrl} onChange={(e) => setAudioUrl(e.target.value)} placeholder="https://...mp3" />
+                <label className="label"><span className="label-text font-semibold">Audio File {editingAudio ? "" : "*"}</span></label>
+                <input
+                  type="file"
+                  accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac"
+                  className="file-input file-input-bordered w-full"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setAudioFile(f);
+                    if (f) setAudioUrl("");
+                  }}
+                />
+                <label className="label">
+                  <span className="label-text-alt opacity-60">MP3, WAV, OGG, M4A, FLAC, AAC — max 200MB. Uploaded to Cloudinary.</span>
+                </label>
+              </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text font-semibold">Or Audio URL</span></label>
+                <input
+                  type="url"
+                  className="input input-bordered"
+                  value={audioUrl}
+                  onChange={(e) => { setAudioUrl(e.target.value); if (e.target.value) setAudioFile(null); }}
+                  placeholder="https://...mp3"
+                  disabled={!!audioFile}
+                />
+                {audioFile && (
+                  <label className="label">
+                    <span className="label-text-alt text-emerald-600">File selected: {audioFile.name}</span>
+                  </label>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="form-control">
@@ -253,11 +389,44 @@ const AudioLibraryAdmin = () => {
                 <textarea className="textarea textarea-bordered h-20" value={audioDesc} onChange={(e) => setAudioDesc(e.target.value)} placeholder="Optional description" />
               </div>
               <div className="form-control">
-                <label className="label"><span className="label-text font-semibold">Thumbnail URL</span></label>
-                <input type="url" className="input input-bordered" value={audioThumb} onChange={(e) => setAudioThumb(e.target.value)} placeholder="Optional thumbnail" />
+                <label className="label"><span className="label-text font-semibold">Thumbnail File</span></label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="file-input file-input-bordered w-full"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setAudioThumbFile(f);
+                    if (f) setAudioThumb("");
+                  }}
+                />
               </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text font-semibold">Or Thumbnail URL</span></label>
+                <input
+                  type="url"
+                  className="input input-bordered"
+                  value={audioThumb}
+                  onChange={(e) => { setAudioThumb(e.target.value); if (e.target.value) setAudioThumbFile(null); }}
+                  placeholder="Optional thumbnail URL"
+                  disabled={!!audioThumbFile}
+                />
+                {audioThumb && !audioThumbFile && (
+                  <img src={audioThumb} alt="" className="mt-2 h-16 w-16 rounded object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                )}
+              </div>
+
+              {uploadingAudio && (
+                <div className="mt-2">
+                  <progress className="progress progress-primary w-full" value={uploadProgress} max="100"></progress>
+                  <p className="text-xs text-center mt-1">{uploadProgress}%</p>
+                </div>
+              )}
+
               <div className="flex gap-2 mt-2">
-                <button className="btn btn-primary flex-1" onClick={saveAudio}>{editingAudio ? "Update" : "Create"}</button>
+                <button className="btn btn-primary flex-1" onClick={saveAudio} disabled={uploadingAudio}>
+                  {uploadingAudio ? "Uploading…" : editingAudio ? "Update" : "Create"}
+                </button>
                 {editingAudio && <button className="btn btn-ghost" onClick={resetAudioForm}>Cancel</button>}
               </div>
             </div>
@@ -288,7 +457,8 @@ const AudioLibraryAdmin = () => {
                           <td>
                             <button className="btn btn-xs btn-ghost" onClick={() => {
                               setEditingAudio(a); setAudioTitle(a.title); setAudioDesc(a.description || "");
-                              setAudioUrl(a.audioUrl); setAudioThumb(a.thumbnail || ""); setAudioCategoryId(a.categoryId);
+                              setAudioUrl(a.audioUrl); setAudioFile(null); setAudioThumb(a.thumbnail || ""); setAudioThumbFile(null);
+                              setAudioCategoryId(a.categoryId);
                               setAudioReciter(a.reciter || ""); setAudioDuration(a.duration || "");
                             }}>Edit</button>
                             <button className="btn btn-xs btn-error btn-ghost" onClick={() => deleteAudio(a._id)}>Del</button>
@@ -296,6 +466,17 @@ const AudioLibraryAdmin = () => {
                         </tr>
                       );
                     })}
+                    {audiosError && (
+                      <tr>
+                        <td colSpan={5} className="text-center py-6">
+                          <p className="text-error text-sm">Could not load audios: {audiosError}</p>
+                          <button className="btn btn-xs btn-outline mt-2" onClick={fetchAudios}>Retry</button>
+                        </td>
+                      </tr>
+                    )}
+                    {!audiosError && audios.length === 0 && (
+                      <tr><td colSpan={5} className="text-center text-gray-400 py-6">No audios yet.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>

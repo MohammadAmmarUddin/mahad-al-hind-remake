@@ -91,7 +91,7 @@ const fallbackContent = {
     },
     contact: {
       phone: "+919365262648",
-      email: "info@mahad-al-hind.net",
+      email: "mahadalhind@gmail.com",
     },
     ctaButtons: [
       { label: "Notice", path: "/#notice-board", order: 0 },
@@ -133,15 +133,18 @@ export const SiteContentProvider = ({ children }) => {
     setContent((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const translate = (group, key) => {
-    const entry = content?.[group]?.[key];
+  const translate = useCallback(
+    (group, key) => {
+      const entry = content?.[group]?.[key];
 
-    if (!entry) {
-      return "";
-    }
+      if (!entry) {
+        return "";
+      }
 
-    return entry[language] || entry.en || "";
-  };
+      return entry[language] || entry.en || "";
+    },
+    [content, language],
+  );
 
   const value = useMemo(
     () => ({
@@ -152,7 +155,7 @@ export const SiteContentProvider = ({ children }) => {
       updateContent,
       theme: content?.theme || "current-default",
     }),
-    [content, language, updateContent],
+    [content, language, translate, updateContent],
   );
 
   return (

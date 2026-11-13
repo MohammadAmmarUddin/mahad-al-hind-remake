@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get("/public", getPublicMedia);
 router.get("/admin", requireAuth, getAdminMedia);
-router.post("/upload", uploadSingle, uploadMedia);
+router.post("/upload", requireAuth, uploadSingle, uploadMedia);
 router.put("/:id", requireAuth, updateMedia);
 router.delete("/:id", requireAuth, deleteMedia);
 

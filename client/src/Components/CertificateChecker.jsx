@@ -1,19 +1,29 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { safeFetchJson } from "../config/api";
 
 const CertificateChecker = () => {
-  const [certificateId, setCertificateId] = useState("");
+  const [searchParams] = useSearchParams();
+  const uidParam = (searchParams.get("uid") || "").trim();
+
+  const [certificateId, setCertificateId] = useState(uidParam);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const autoCheckedUid = useRef(null);
 
-  const handleCheck = async () => {
-    if (!certificateId) return;
+  const handleCheck = async (uid) => {
+    const id = (typeof uid === "string" ? uid : certificateId).trim();
+    if (!id) return;
 
     setLoading(true);
     setResult(null);
 
     try {
-      const data = await safeFetchJson(`/api/certificate/check/${certificateId}`, {}, null);
+      const data = await safeFetchJson(
+        `/api/certificate/check/${encodeURIComponent(id)}`,
+        {},
+        null
+      );
 
       if (data?.valid) {
         setResult({
@@ -42,6 +52,16 @@ const CertificateChecker = () => {
     }
   };
 
+  const handleCheckRef = useRef(null);
+  handleCheckRef.current = handleCheck;
+
+  useEffect(() => {
+    if (!uidParam || autoCheckedUid.current === uidParam) return;
+    autoCheckedUid.current = uidParam;
+    setCertificateId(uidParam);
+    handleCheckRef.current?.(uidParam);
+  }, [uidParam]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -68,7 +88,7 @@ const CertificateChecker = () => {
           />
 
           <button
-            onClick={handleCheck}
+            onClick={() => handleCheck()}
             className="btn-primary w-full py-3"
             disabled={loading}
           >
@@ -93,10 +113,22 @@ const CertificateChecker = () => {
               {result.status === "valid" && result.certificate && (
                 <div className="space-y-2 text-left text-sm text-neutral-700">
                   <p>
+                    <strong>UID:</strong> {result.certificate.certificateId}
+                  </p>
+                  <p>
                     <strong>Student:</strong> {result.certificate.studentName}
                   </p>
                   <p>
                     <strong>Course:</strong> {result.certificate.courseName}
+                  </p>
+                  <p>
+                    <strong>Date of Birth:</strong>{" "}
+                    {result.certificate.dob
+                      ? new Date(result.certificate.dob).toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                  <p>
+                    <strong>Address:</strong> {result.certificate.address || "N/A"}
                   </p>
                   <p>
                     <strong>Issue Date:</strong>{" "}

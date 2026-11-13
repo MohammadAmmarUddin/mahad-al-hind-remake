@@ -5,7 +5,8 @@ import { router } from "./Routes/Routes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthContextProvider } from "./context/AuthContext";
 import { SiteContentProvider } from "./context/SiteContentContext";
-import { Component } from "react";
+import { Component, Suspense } from "react";
+import RouteFallback from "./Layout/RouteFallback";
 
 const queryClient = new QueryClient();
 
@@ -48,7 +49,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <SiteContentProvider>
       <QueryClientProvider client={queryClient}>
         <AppErrorBoundary>
-          <RouterProvider router={router} />
+          <Suspense fallback={<RouteFallback />}>
+            <RouterProvider router={router} />
+          </Suspense>
         </AppErrorBoundary>
       </QueryClientProvider>
     </SiteContentProvider>

@@ -26,7 +26,9 @@ const requestJson = async (path, options = {}) => {
 
 const authHeaders = () => {
   const token = getStoredAuthToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return token
+    ? { Authorization: `Bearer ${token}`, "x-access-token": token }
+    : {};
 };
 
 export const fetchAdminMedia = async () => {
@@ -59,6 +61,10 @@ export const uploadMedia = async ({ file, title = "", description = "", isPublic
   const response = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API}/api/media/upload`);
+    const headers = authHeaders();
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
     xhr.upload.onprogress = (event) => {
       if (typeof onProgress === "function" && event.lengthComputable) {
         onProgress(Math.round((event.loaded * 100) / event.total));

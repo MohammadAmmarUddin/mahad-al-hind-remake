@@ -1,38 +1,64 @@
 import "swiper/css";
 import "swiper/css/pagination";
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
+import { useQuery } from "@tanstack/react-query";
 import useAuthContext from "../hooks/useAuthContext";
 import BreakingNews from "../Components/Breakingnews.jsx";
-import UpdateBanner from "../Components/UpdateBanner.jsx";
-import VideoSection from "../Components/VideoSection.jsx";
-import PublicGallery from "../Components/PublicGallery";
-import NoticeBoard from "../Components/NoticeBoard";
-import StudentVideoReviews from "../Components/StudentVideoReviews";
 import { useSiteContent } from "../context/SiteContentContext";
+import { safeFetchJson } from "../config/api";
+import { resolveMediaUrl } from "../utils/media";
+import { SectionFallback } from "../Layout/RouteFallback";
 import {
   defaultHomeSections,
   readLocalJson,
   HOME_SECTIONS_STORAGE_KEY,
 } from "../config/localContent";
 
-const heroBanners = [
-  { src: "/pagri/banner1.jpg", alt: "Ma'hadul Qira'at Al Hind" },
-  { src: "/pagri/banner2.jpg", alt: "Qira'at Academy in the World" },
-  { src: "/pagri/banner4.jpg", alt: "Knowledge & Learning" },
+const UpdateBanner = lazy(() => import("../Components/UpdateBanner.jsx"));
+const VideoSection = lazy(() => import("../Components/VideoSection.jsx"));
+const PublicGallery = lazy(() => import("../Components/PublicGallery"));
+const NoticeBoard = lazy(() => import("../Components/NoticeBoard"));
+const StudentVideoReviews = lazy(() => import("../Components/StudentVideoReviews"));
+
+const defaultHeroBanners = [
+  { src: "/pagri/banner1.jpg", alt: "Ma'hadul Qira'at Al Hind", link: "" },
+  { src: "/pagri/banner2.jpg", alt: "Qira'at Academy in the World", link: "" },
+  { src: "/pagri/banner4.jpg", alt: "Knowledge & Learning", link: "" },
 ];
 
 const Home = () => {
   const { user } = useAuthContext();
   const { translate } = useSiteContent();
   const location = useLocation();
-  const sections = readLocalJson(
-    HOME_SECTIONS_STORAGE_KEY,
-    defaultHomeSections,
+
+  const sections = useMemo(
+    () => readLocalJson(HOME_SECTIONS_STORAGE_KEY, defaultHomeSections),
+    [],
   );
+
+  const { data: remoteBanners } = useQuery({
+    queryKey: ["hero-banners", "public"],
+    queryFn: () => safeFetchJson("/api/hero-banners/public", {}, []),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const banners = useMemo(() => {
+    const remote = Array.isArray(remoteBanners)
+      ? remoteBanners.filter((b) => b?.imageUrl)
+      : [];
+
+    if (!remote.length) return defaultHeroBanners;
+
+    return remote.map((b) => ({
+      src: resolveMediaUrl(b.imageUrl),
+      alt: b.alt || "Ma'hadul Qira'at Al Hind",
+      link: b.link || "",
+    }));
+  }, [remoteBanners]);
 
   useEffect(() => {
     if (location.hash === "#notice-board") {
@@ -42,6 +68,38 @@ const Home = () => {
       return () => clearTimeout(timer);
     }
   }, [location.hash]);
+
+  const renderSlide = (banner, index) => {
+    const image = (
+      <img
+        src={banner.src}
+        alt={banner.alt}
+        decoding="async"
+        loading={index === 0 ? "eager" : "lazy"}
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
+    );
+
+    return (
+      <SwiperSlide key={`${banner.src}-${index}`} className="!block">
+        <div className="relative h-[340px] w-full sm:h-[420px] md:h-[480px] lg:h-[540px]">
+          {banner.link ? (
+            <a
+              href={banner.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute inset-0 block"
+              aria-label={banner.alt}
+            >
+              {image}
+            </a>
+          ) : (
+            image
+          )}
+        </div>
+      </SwiperSlide>
+    );
+  };
 
   return (
     <div className="bg-[#faf6ee]">
@@ -58,21 +116,11 @@ const Home = () => {
                 bulletClass: "swiper-pagination-bullet !bg-white/50 !w-2.5 !h-2.5",
                 bulletActiveClass: "swiper-pagination-bullet-active !bg-white !w-3.5 !h-3.5",
               }}
-              loop={true}
+              loop={banners.length > 1}
               speed={0}
               className="absolute inset-0 h-full w-full"
             >
-              {heroBanners.map((banner, index) => (
-                <SwiperSlide key={index} className="!block">
-                  <div className="relative h-[340px] w-full sm:h-[420px] md:h-[480px] lg:h-[540px]">
-                    <img
-                      src={banner.src}
-                      alt={banner.alt}
-                      className="absolute inset-0 h-full w-full object-cover object-center"
-                    />
-                  </div>
-                </SwiperSlide>
-              ))}
+              {banners.map(renderSlide)}
             </Swiper>
 
             {/* Vintage vignette — dark edges, clear center */}
@@ -130,31 +178,34 @@ const Home = () => {
       )}
 
       {/* Breaking News Ticker - under hero */}
-      {sections.breakingNews && (
-        <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-600 shadow-md">
-          <div className="container-main flex items-stretch">
-            <div className="flex shrink-0 items-center bg-red-800 px-4 py-2.5 sm:px-5">
-              <span className="relative flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>
-                </span>
-                Breaking
-              </span>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <BreakingNews />
-            </div>
-          </div>
-        </div>
-      )}
+      {sections.breakingNews && <BreakingNews />}
 
       <div className="container-main">
-        {sections.noticeBoard !== false && <NoticeBoard />}
-        {sections.statsBanner && <UpdateBanner />}
-        {sections.videos && <VideoSection />}
-        {sections.studentReviews !== false && <StudentVideoReviews />}
-        {sections.gallery && <PublicGallery />}
+        {sections.noticeBoard !== false && (
+          <Suspense fallback={<SectionFallback />}>
+            <NoticeBoard />
+          </Suspense>
+        )}
+        {sections.statsBanner && (
+          <Suspense fallback={<SectionFallback />}>
+            <UpdateBanner />
+          </Suspense>
+        )}
+        {sections.videos && (
+          <Suspense fallback={<SectionFallback />}>
+            <VideoSection />
+          </Suspense>
+        )}
+        {sections.studentReviews !== false && (
+          <Suspense fallback={<SectionFallback />}>
+            <StudentVideoReviews />
+          </Suspense>
+        )}
+        {sections.gallery && (
+          <Suspense fallback={<SectionFallback />}>
+            <PublicGallery />
+          </Suspense>
+        )}
       </div>
     </div>
   );

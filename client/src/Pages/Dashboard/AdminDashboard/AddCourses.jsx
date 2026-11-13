@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useEffect, useRef, useState } from "react";
 import JoditEditor from "jodit-react";
 import { RxCross2 } from "react-icons/rx";
@@ -5,6 +6,18 @@ import useAuthContext from "../../../hooks/useAuthContext";
 import { API } from "../../../config/api";
 import { uploadFilesToBackend, validateFile } from "../../../utils/uploadMedia";
 import { resolveMediaUrl } from "../../../utils/media";
+import { getStoredAuthToken } from "../../../utils/authToken";
+
+const authHeaders = (contentType) => {
+  const token = getStoredAuthToken();
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers["x-access-token"] = token;
+  }
+  if (contentType) headers["Content-Type"] = contentType;
+  return headers;
+};
 
 const AddCourses = () => {
   const { user } = useAuthContext();
@@ -44,10 +57,10 @@ const AddCourses = () => {
   // Fetch instructors data
   const fetchAllUsers = () => {
     const url = `${baseUrl}/api/user/allUsers`;
-    fetch(url)
+    fetch(url, { headers: authHeaders() })
       .then((res) => res.json())
       .then((data) => {
-        setSelectInstructors(data);
+        setSelectInstructors(Array.isArray(data) ? data : []);
       })
       .catch((error) => console.log(error));
   };
@@ -250,31 +263,31 @@ const AddCourses = () => {
         keywords: selectedKeywords,
         price, // Actual price from the form
         discount, // Actual discount from the form
-        quizzes: quizzes.map((quiz) => ({
-          question: quiz.question,
-          options: quiz.options,
-          answer: parseInt(quiz.answer),
-        })),
+        quizzes: quizzes
+          .filter((quiz) => quiz.question && quiz.question.trim())
+          .map((quiz) => ({
+            question: quiz.question,
+            options: quiz.options,
+            answer: Number.isNaN(parseInt(quiz.answer, 10))
+              ? 0
+              : parseInt(quiz.answer, 10),
+          })),
       };
       const baseUrl = API;
       // Make a POST request to the backend API
       const response = await fetch(`${baseUrl}/api/course/createCourse`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders("application/json"),
         body: JSON.stringify(courseData),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Course created successfully:", data);
-        setUploadProgress(100); // Set to 100% after successful creation
+        setUploadProgress(100);
       } else {
-        console.error("Failed to create course:", await response.text());
+        throw new Error(await response.text());
       }
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error creating course:", error);
     } finally {
       setLoading(false);
     }
@@ -332,15 +345,15 @@ const AddCourses = () => {
             </div>
           </div>
 
-          <div className="flex justify-between gap-3">
-            <div className="form-control w-full">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+            <div className="form-control w-full min-w-0">
               <label className="label">
                 <span className="label-text">Category</span>
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="px-3 py-[11px] rounded-md cursor-pointer border border-slate-200"
+                className="w-full min-w-0 px-3 py-[11px] rounded-md cursor-pointer border border-slate-200"
               >
                 <option disabled selected>
                   Select a category
@@ -352,14 +365,14 @@ const AddCourses = () => {
               </select>
             </div>
 
-            <div className="form-control w-full">
+            <div className="form-control w-full min-w-0">
               <label className="label">
                 <span className="label-text">Sub category</span>
               </label>
               <select
                 value={subCategory}
                 onChange={(e) => setSubCategory(e.target.value)}
-                className="px-3 py-[11px] rounded-md cursor-pointer border border-slate-200"
+                className="w-full min-w-0 px-3 py-[11px] rounded-md cursor-pointer border border-slate-200"
               >
                 <option disabled selected>
                   Select a sub-category
@@ -398,8 +411,8 @@ const AddCourses = () => {
             </div>
           </div>
 
-          <div className="flex justify-between gap-3">
-            <div className="form-control w-full">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+            <div className="form-control w-full min-w-0">
               <label className="label">
                 <span className="label-text">Price</span>
               </label>
@@ -408,11 +421,11 @@ const AddCourses = () => {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="Price"
-                className="px-3 py-[11px] rounded-md border border-slate-200"
+                className="w-full min-w-0 px-3 py-[11px] rounded-md border border-slate-200"
               />
             </div>
 
-            <div className="form-control w-full">
+            <div className="form-control w-full min-w-0">
               <label className="label">
                 <span className="label-text">Discount</span>
               </label>
@@ -421,7 +434,7 @@ const AddCourses = () => {
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
                 placeholder="Discount"
-                className="px-3 py-[11px] rounded-md border border-slate-200"
+                className="w-full min-w-0 px-3 py-[11px] rounded-md border border-slate-200"
               />
             </div>
           </div>

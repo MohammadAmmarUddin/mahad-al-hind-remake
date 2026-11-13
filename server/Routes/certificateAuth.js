@@ -4,6 +4,7 @@ const {
   getAllCertificates,
   getCertificateById,
   checkCertificate,
+  updateCertificate,
   deleteCertificate,
 } = require("../Controllers/certificateAuthController");
 
@@ -16,6 +17,8 @@ router.get("/", getAllCertificates);
 router.get("/check/:certificateId", checkCertificate);
 
 router.get("/:id", getCertificateById);
+
+router.put("/:id", updateCertificate);
 
 router.delete("/:id", deleteCertificate);
 

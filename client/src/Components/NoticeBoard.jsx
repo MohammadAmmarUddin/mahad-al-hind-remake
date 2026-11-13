@@ -23,14 +23,10 @@ const NoticeBoard = () => {
       .then((res) => res.json())
       .then((data) => {
         const list = Array.isArray(data) ? data : [];
-        setCategories([
-          { key: "all", label: translate("noticeBoard", "all") || "All", color: null },
-          ...list.map((c) => ({ key: c.slug, label: c.name, color: c.color })),
-        ]);
+        setCategories(list.map((c) => ({ key: c.slug, label: c.name, color: c.color })));
       })
       .catch(() => {
         setCategories([
-          { key: "all", label: "All", color: null },
           { key: "general", label: "General", color: null },
           { key: "exam", label: "Exam", color: null },
           { key: "admission", label: "Admission", color: null },
@@ -38,7 +34,12 @@ const NoticeBoard = () => {
           { key: "result", label: "Result", color: null },
         ]);
       });
-  }, [translate]);
+  }, []);
+
+  const categoryItems = [
+    { key: "all", label: translate("noticeBoard", "all") || "All", color: null },
+    ...categories,
+  ];
 
   const { data, isLoading, isError } = useNotices({
     page,
@@ -132,7 +133,7 @@ const NoticeBoard = () => {
 
           {/* Category Pills */}
           <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
+            {categoryItems.map((cat) => (
               <button
                 key={cat.key}
                 onClick={() => handleCategoryChange(cat.key)}

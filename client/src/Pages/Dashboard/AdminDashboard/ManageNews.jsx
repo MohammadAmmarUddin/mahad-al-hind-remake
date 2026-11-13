@@ -24,7 +24,6 @@ const ManageNews = () => {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ title: "", excerpt: "", content: "", category: "general", isPinned: false, postedBy: "Administration", attachmentUrl: "", attachmentName: "" });
-  const [attachmentFile, setAttachmentFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -43,13 +42,16 @@ const ManageNews = () => {
       const params = new URLSearchParams({ page: 1, limit: 500 });
       if (debouncedSearch) params.append("search", debouncedSearch);
       if (filterCategory !== "all") params.append("category", filterCategory);
-      const res = await fetch(`${API}/api/news/public?${params}`, { headers: authHeaders() });
+      const res = await fetch(`${API}/api/news?${params}`, { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
-        setNews(data.news || []);
+        setNews(data.notices || data.news || []);
       }
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   }, [debouncedSearch, filterCategory]);
 
   const fetchCategories = useCallback(async () => {
@@ -59,7 +61,9 @@ const ManageNews = () => {
         const data = await res.json();
         setCategories(Array.isArray(data) ? data : []);
       }
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
   useEffect(() => { fetchNews(); }, [fetchNews]);
@@ -81,7 +85,6 @@ const ManageNews = () => {
 
   const resetForm = () => {
     setForm({ title: "", excerpt: "", content: "", category: "general", isPinned: false, postedBy: "Administration", attachmentUrl: "", attachmentName: "" });
-    setAttachmentFile(null);
     setEditing(null);
     setShowForm(false);
   };

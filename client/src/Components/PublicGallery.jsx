@@ -11,7 +11,7 @@ const PublicGallery = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["gallery"],
     queryFn: () => fetchGalleryItems({ limit: 50 }),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   const items = data?.data || [];

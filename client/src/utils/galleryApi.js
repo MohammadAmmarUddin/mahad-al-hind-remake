@@ -95,6 +95,7 @@ export const fetchGalleryItems = async ({
 export const uploadGalleryItem = async ({
   file,
   title = "",
+  galleryType = "general",
   sortOrder = 0,
   isVisible = true,
   onProgress,
@@ -118,8 +119,10 @@ export const uploadGalleryItem = async ({
       imageUrl: cloudinaryResult.secure_url,
       publicId: cloudinaryResult.public_id,
       title,
+      galleryType,
       sortOrder,
       isVisible,
+      resourceType: cloudinaryResult.resource_type || "image",
     }),
   });
 };
@@ -139,8 +142,10 @@ export const updateGalleryItem = async (id, payload) => {
         imageUrl: cloudinaryResult.secure_url,
         publicId: cloudinaryResult.public_id,
         title: payload.title,
+        galleryType: payload.galleryType,
         sortOrder: payload.sortOrder,
         isVisible: payload.isVisible,
+        resourceType: cloudinaryResult.resource_type || "image",
       }),
     });
   }

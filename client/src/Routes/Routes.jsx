@@ -1,48 +1,58 @@
-import { createBrowserRouter } from "react-router-dom";
+/* eslint-disable react-refresh/only-export-components */
+import { lazy } from "react";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Main from "../Layout/Main";
 import Home from "../Pages/Home";
-import Signup from "../Pages/Signup";
-import Login from "../Pages/Login";
-import Dashboard from "../Pages/Dashboard/Dashboard";
-import AdminHome from "../Pages/Dashboard/AdminDashboard/AdminHome";
-import AllUsers from "../Pages/Dashboard/AdminDashboard/AllUsers";
-import UserHome from "../Pages/Dashboard/UserDashboard/UserHome";
-import AllCourses from "../Components/AllCourses";
-import AddReview from "../Pages/Dashboard/UserDashboard/AddReview";
-import PaymentHistory from "../Pages/Dashboard/UserDashboard/PaymentHistory";
-import ForgetPassword from "../Components/ForgetPassword";
-import ResetPassword from "../Components/ResetPassword";
-import MyClasses from "../Pages/Dashboard/UserDashboard/MyClasses";
-import ManageCourses from "../Pages/Dashboard/AdminDashboard/ManageCourses";
-import AllTransactions from "../Pages/Dashboard/AdminDashboard/AllTransactions";
-import AddCourses from "../Pages/Dashboard/AdminDashboard/AddCourses";
-import SingleCourse from "../Components/SingleCourse";
-import UpdateProfile from "../Pages/Dashboard/UserDashboard/UpdateProfile";
-import Profile from "../Pages/Profile";
-import Certificate from "../Components/Certificate.jsx";
-import Settings from "../Components/Settings";
-import ScheduleMeet from "../Components/ScheduleMeet";
-import UpdateCourse from "../Pages/Dashboard/AdminDashboard/UpdateCourse";
-import Others from "../Components/Others";
-import CertificateChecker from "../Components/CertificateChecker";
-import CertificateAdd from "../Pages/Dashboard/AdminDashboard/CertificateAdd";
-import AdmissionHelp from "../Components/AdmissionHelp";
-import ManageVideos from "../Pages/Dashboard/AdminDashboard/ManageVideos";
-import HomeSectionManager from "../Pages/Dashboard/AdminDashboard/HomeSectionManager";
-import ManageGallery from "../Pages/Dashboard/AdminDashboard/ManageGallery";
-import EnrollmentSettings from "../Pages/Dashboard/AdminDashboard/EnrollmentSettings";
-import ManageBreakingNews from "../Pages/Dashboard/AdminDashboard/ManageBreakingNews";
-import ManageNotices from "../Pages/Dashboard/AdminDashboard/ManageNotices";
-import ManageNoticeCategories from "../Pages/Dashboard/AdminDashboard/ManageNoticeCategories";
-import ManageNews from "../Pages/Dashboard/AdminDashboard/ManageNews";
-import ManageCareers from "../Pages/Dashboard/AdminDashboard/ManageCareers";
-import ManageFAQ from "../Pages/Dashboard/AdminDashboard/ManageFAQ";
-import NewsPage from "../Pages/NewsPage";
-import NewsDetailPage from "../Pages/NewsDetailPage";
-import CareerPage from "../Pages/CareerPage";
-import CareerDetailPage from "../Pages/CareerDetailPage";
-import FaqPage from "../Pages/FaqPage";
 import ErrorPage from "../Pages/ErrorPage";
+import PrivateRoute from "../Components/PrivateRoute";
+import AdminRoute from "../Components/AdminRoute";
+
+const Signup = lazy(() => import("../Pages/Signup"));
+const Login = lazy(() => import("../Pages/Login"));
+const Dashboard = lazy(() => import("../Pages/Dashboard/Dashboard"));
+const AdminHome = lazy(() => import("../Pages/Dashboard/AdminDashboard/AdminHome"));
+const AllUsers = lazy(() => import("../Pages/Dashboard/AdminDashboard/AllUsers"));
+const UserHome = lazy(() => import("../Pages/Dashboard/UserDashboard/UserHome"));
+const AllCourses = lazy(() => import("../Components/AllCourses"));
+const AddReview = lazy(() => import("../Pages/Dashboard/UserDashboard/AddReview"));
+const PaymentHistory = lazy(() => import("../Pages/Dashboard/UserDashboard/PaymentHistory"));
+const ForgetPassword = lazy(() => import("../Components/ForgetPassword"));
+const ResetPassword = lazy(() => import("../Components/ResetPassword"));
+const MyClasses = lazy(() => import("../Pages/Dashboard/UserDashboard/MyClasses"));
+const ManageCourses = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageCourses"));
+const AllTransactions = lazy(() => import("../Pages/Dashboard/AdminDashboard/AllTransactions"));
+const AddCourses = lazy(() => import("../Pages/Dashboard/AdminDashboard/AddCourses"));
+const SingleCourse = lazy(() => import("../Components/SingleCourse"));
+const UpdateProfile = lazy(() => import("../Pages/Dashboard/UserDashboard/UpdateProfile"));
+const Profile = lazy(() => import("../Pages/Profile"));
+const Certificate = lazy(() => import("../Components/Certificate.jsx"));
+const Settings = lazy(() => import("../Components/Settings"));
+const ScheduleMeet = lazy(() => import("../Components/ScheduleMeet"));
+const UpdateCourse = lazy(() => import("../Pages/Dashboard/AdminDashboard/UpdateCourse"));
+const Others = lazy(() => import("../Components/Others"));
+const CertificateChecker = lazy(() => import("../Components/CertificateChecker"));
+const CertificateAdd = lazy(() => import("../Pages/Dashboard/AdminDashboard/CertificateAdd"));
+const AdmissionHelp = lazy(() => import("../Components/AdmissionHelp"));
+const ManageVideos = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageVideos"));
+const HomeSectionManager = lazy(() => import("../Pages/Dashboard/AdminDashboard/HomeSectionManager"));
+const ManageGallery = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageGallery"));
+const EnrollmentSettings = lazy(() => import("../Pages/Dashboard/AdminDashboard/EnrollmentSettings"));
+const ManageBreakingNews = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageBreakingNews"));
+const ManageNotices = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageNotices"));
+const ManageNoticeCategories = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageNoticeCategories"));
+const ManageNews = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageNews"));
+const ManageCareers = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageCareers"));
+const ManageFAQ = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageFAQ"));
+const NewsPage = lazy(() => import("../Pages/NewsPage"));
+const NewsDetailPage = lazy(() => import("../Pages/NewsDetailPage"));
+const CareerPage = lazy(() => import("../Pages/CareerPage"));
+const CareerDetailPage = lazy(() => import("../Pages/CareerDetailPage"));
+const FaqPage = lazy(() => import("../Pages/FaqPage"));
+const AppUpdate = lazy(() => import("../Pages/Dashboard/AdminDashboard/AppUpdate"));
+const AudioLibraryAdmin = lazy(() => import("../Pages/Dashboard/AdminDashboard/AudioLibraryAdmin"));
+const FinanceOverview = lazy(() => import("../Pages/Dashboard/AdminDashboard/FinanceOverview"));
+const ManageStudentReviews = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageStudentReviews"));
+const ManageHeroBanners = lazy(() => import("../Pages/Dashboard/AdminDashboard/ManageHeroBanners"));
 
 export const router = createBrowserRouter([
   {
@@ -75,9 +85,14 @@ export const router = createBrowserRouter([
   },
   {
     path: "/dashboard/admin",
-    element: <Dashboard />,
+    element: (
+      <AdminRoute>
+        <Dashboard />
+      </AdminRoute>
+    ),
     errorElement: <ErrorPage />,
     children: [
+      { index: true, element: <Navigate to="/dashboard/admin/adminHome" replace /> },
       { path: "/dashboard/admin/adminHome", element: <AdminHome /> },
       { path: "/dashboard/admin/addCourses", element: <AddCourses /> },
       { path: "/dashboard/admin/updateCourse/:id", element: <UpdateCourse /> },
@@ -96,13 +111,23 @@ export const router = createBrowserRouter([
       { path: "/dashboard/admin/manageNews", element: <ManageNews /> },
       { path: "/dashboard/admin/manageCareers", element: <ManageCareers /> },
       { path: "/dashboard/admin/manageFAQ", element: <ManageFAQ /> },
+      { path: "/dashboard/admin/appUpdate", element: <AppUpdate /> },
+      { path: "/dashboard/admin/audioLibrary", element: <AudioLibraryAdmin /> },
+      { path: "/dashboard/admin/finance", element: <FinanceOverview /> },
+      { path: "/dashboard/admin/manageStudentReviews", element: <ManageStudentReviews /> },
+      { path: "/dashboard/admin/heroBanners", element: <ManageHeroBanners /> },
     ],
   },
   {
     path: "/dashboard/user",
-    element: <Dashboard />,
+    element: (
+      <PrivateRoute>
+        <Dashboard />
+      </PrivateRoute>
+    ),
     errorElement: <ErrorPage />,
     children: [
+      { index: true, element: <Navigate to="/dashboard/user/userHome" replace /> },
       { path: "/dashboard/user/userHome", element: <UserHome /> },
       { path: "/dashboard/user/userPaymentHistory", element: <PaymentHistory /> },
       { path: "/dashboard/user/userCourses", element: <MyClasses /> },
