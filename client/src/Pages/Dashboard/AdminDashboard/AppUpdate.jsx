@@ -14,6 +14,12 @@ const AppUpdate = () => {
     forceUpdate: false,
     updateEnabled: true,
     showUpdateToOutdatedUsers: false,
+    latestVersionCode: 0,
+    minSupportedVersionCode: 0,
+    apkSha256: "",
+    apkSizeBytes: 0,
+    releaseNotesBn: "",
+    releaseNotesEn: "",
   });
 
   useEffect(() => {
@@ -32,6 +38,12 @@ const AppUpdate = () => {
           forceUpdate: data.data.forceUpdate || false,
           updateEnabled: data.data.updateEnabled !== false,
           showUpdateToOutdatedUsers: data.data.showUpdateToOutdatedUsers || false,
+          latestVersionCode: data.data.latestVersionCode || 0,
+          minSupportedVersionCode: data.data.minSupportedVersionCode || 0,
+          apkSha256: data.data.apkSha256 || "",
+          apkSizeBytes: data.data.apkSizeBytes || 0,
+          releaseNotesBn: data.data.releaseNotesBn || "",
+          releaseNotesEn: data.data.releaseNotesEn || "",
         });
       }
     } catch (err) {
@@ -79,6 +91,12 @@ const AppUpdate = () => {
         forceUpdate: form.forceUpdate,
         updateEnabled: form.updateEnabled,
         showUpdateToOutdatedUsers: form.showUpdateToOutdatedUsers,
+        latestVersionCode: Number(form.latestVersionCode) || 0,
+        minSupportedVersionCode: Number(form.minSupportedVersionCode) || 0,
+        apkSha256: form.apkSha256.trim().toLowerCase(),
+        apkSizeBytes: Number(form.apkSizeBytes) || 0,
+        releaseNotesBn: form.releaseNotesBn.trim(),
+        releaseNotesEn: form.releaseNotesEn.trim(),
       });
       if (data.success) {
         showSaved("versionConfig");
@@ -228,7 +246,7 @@ const AppUpdate = () => {
                   name="latestVersion"
                   value={form.latestVersion}
                   onChange={(e) => setForm((prev) => ({ ...prev, latestVersion: e.target.value }))}
-                  placeholder="e.g. 1.3.0"
+                  placeholder="e.g. 1.6.0"
                   className="input input-bordered w-full"
                 />
               </div>
@@ -241,11 +259,51 @@ const AppUpdate = () => {
                   name="minVersion"
                   value={form.minVersion}
                   onChange={(e) => setForm((prev) => ({ ...prev, minVersion: e.target.value }))}
-                  placeholder="e.g. 1.0.0"
+                  placeholder="e.g. 1.5.0"
                   className="input input-bordered w-full"
                 />
                 <label className="label">
                   <span className="label-text-alt text-gray-500">Users below this will be forced to update</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Latest Version Code</span>
+                </label>
+                <input
+                  type="number"
+                  name="latestVersionCode"
+                  value={form.latestVersionCode}
+                  onChange={(e) => setForm((prev) => ({ ...prev, latestVersionCode: e.target.value }))}
+                  placeholder="e.g. 2020"
+                  className="input input-bordered w-full"
+                />
+                <label className="label">
+                  <span className="label-text-alt text-gray-500">
+                    Must be higher than the versionCode of the currently published APK, otherwise Android
+                    refuses the update
+                  </span>
+                </label>
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Min Supported Version Code</span>
+                </label>
+                <input
+                  type="number"
+                  name="minSupportedVersionCode"
+                  value={form.minSupportedVersionCode}
+                  onChange={(e) => setForm((prev) => ({ ...prev, minSupportedVersionCode: e.target.value }))}
+                  placeholder="e.g. 1"
+                  className="input input-bordered w-full"
+                />
+                <label className="label">
+                  <span className="label-text-alt text-gray-500">
+                    Apps below this build number are forced to update
+                  </span>
                 </label>
               </div>
             </div>
@@ -259,7 +317,7 @@ const AppUpdate = () => {
                 name="apkUrl"
                 value={form.apkUrl}
                 onChange={(e) => setForm((prev) => ({ ...prev, apkUrl: e.target.value }))}
-                placeholder="https://github.com/.../releases/download/v1.3.0/app-release.apk"
+                placeholder="https://github.com/.../releases/download/v1.6.0/app-release.apk"
                 className="input input-bordered w-full"
               />
               <label className="label">
@@ -267,9 +325,79 @@ const AppUpdate = () => {
               </label>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">APK SHA-256</span>
+                </label>
+                <input
+                  type="text"
+                  name="apkSha256"
+                  value={form.apkSha256}
+                  onChange={(e) => setForm((prev) => ({ ...prev, apkSha256: e.target.value }))}
+                  placeholder="64 character hex digest"
+                  className="input input-bordered w-full font-mono text-xs"
+                />
+                <label className="label">
+                  <span className="label-text-alt text-gray-500">
+                    The app verifies the downloaded file against this before installing. Copy it from the
+                    .sha256 file next to the APK
+                  </span>
+                </label>
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">APK Size (bytes)</span>
+                </label>
+                <input
+                  type="number"
+                  name="apkSizeBytes"
+                  value={form.apkSizeBytes}
+                  onChange={(e) => setForm((prev) => ({ ...prev, apkSizeBytes: e.target.value }))}
+                  placeholder="e.g. 26256208"
+                  className="input input-bordered w-full"
+                />
+                <label className="label">
+                  <span className="label-text-alt text-gray-500">Used to show the download size</span>
+                </label>
+              </div>
+            </div>
+
             <div className="form-control mt-4">
               <label className="label">
-                <span className="label-text font-semibold">Release Notes</span>
+                <span className="label-text font-semibold">Release Notes (Bengali)</span>
+              </label>
+              <textarea
+                name="releaseNotesBn"
+                value={form.releaseNotesBn}
+                onChange={(e) => setForm((prev) => ({ ...prev, releaseNotesBn: e.target.value }))}
+                placeholder={"- লগইন সমস্যা সমাধান হয়েছে\n- নতুন সার্টিফিকেট সরানো হয়েছে"}
+                className="textarea textarea-bordered w-full h-32"
+              />
+              <label className="label">
+                <span className="label-text-alt text-gray-500">Shown to Bangla users. One change per line.</span>
+              </label>
+            </div>
+
+            <div className="form-control mt-4">
+              <label className="label">
+                <span className="label-text font-semibold">Release Notes (English)</span>
+              </label>
+              <textarea
+                name="releaseNotesEn"
+                value={form.releaseNotesEn}
+                onChange={(e) => setForm((prev) => ({ ...prev, releaseNotesEn: e.target.value }))}
+                placeholder={"- Fixed the login issue\n- Certificates removed from student features"}
+                className="textarea textarea-bordered w-full h-32"
+              />
+              <label className="label">
+                <span className="label-text-alt text-gray-500">Shown to English users. One change per line.</span>
+              </label>
+            </div>
+
+            <div className="form-control mt-4">
+              <label className="label">
+                <span className="label-text font-semibold">Release Notes (fallback)</span>
               </label>
               <textarea
                 name="releaseNotes"
@@ -279,7 +407,7 @@ const AppUpdate = () => {
                 className="textarea textarea-bordered w-full h-32"
               />
               <label className="label">
-                <span className="label-text-alt text-gray-500">One change per line. Each line becomes a bullet point.</span>
+                <span className="label-text-alt text-gray-500">Used when no language specific notes are set.</span>
               </label>
             </div>
 

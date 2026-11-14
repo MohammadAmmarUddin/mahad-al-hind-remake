@@ -3,3 +3,6 @@ node_modules
 .vercel
 .env.local
  Mahad_Al_Hind_Apk
+# Runtime artifacts
+server/server.log
+server/server.pid
